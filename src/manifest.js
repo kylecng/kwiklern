@@ -37,7 +37,7 @@ export default defineManifest({
       matches: [],
     },
   ],
-  permissions: ['sidePanel', 'storage'],
+  permissions: ['sidePanel', 'storage', 'contextMenus', 'tabs', 'activeTab'],
   chrome_url_overrides: {
     newtab: 'newtab.html',
   },
