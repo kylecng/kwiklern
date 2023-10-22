@@ -1,4 +1,4 @@
-import $ from 'jquery'
+import { JSDOM } from 'jsdom'
 
 export async function getLangOptionsWithLink(videoId) {
   // Get a transcript URL
@@ -39,10 +39,8 @@ export async function getRawTranscript(link) {
   const transcriptPageXml = await transcriptPageResponse.text()
 
   // Parse Transcript
-  console.log(transcriptPageResponse.body)
-  console.log(transcriptPageXml)
-  const jQueryParse = $.parseHTML(transcriptPageXml)
-  const textNodes = jQueryParse[1].childNodes
+  const document = new JSDOM(transcriptPageXml).window.document
+  const textNodes = document.documentElement.childNodes
 
   return Array.from(textNodes).map((i) => {
     return {
@@ -156,6 +154,11 @@ export async function getTranscriptHTML(rawTranscript, videoId) {
   function resetNums() {
     ;(loop = 0), (chars = []), (charCount = 0), (timeSum = 0), (tempObj = {})
   }
+}
+
+function convertIntToHms(num) {
+  const h = num < 3600 ? 14 : 11
+  return new Date(num * 1000).toISOString().substring(h, 19).toString()
 }
 
 export async function getConverTranscript({ langOptionsWithLink, videoId, index }) {

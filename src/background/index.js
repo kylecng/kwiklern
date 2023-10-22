@@ -7,8 +7,8 @@ console.log('background is running')
     const langOptionsWithLink = await getLangOptionsWithLink(videoId)
 
     const transcriptList = await getConverTranscript({ langOptionsWithLink, videoId, index: 0 })
-
-    const videoTitle = document.title
+    console.log(transcriptList)
+    // const videoTitle = document.title
     // const videoUrl = window.location.href
 
     const transcript = (
