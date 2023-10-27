@@ -22,11 +22,16 @@
     "fmt": "prettier --write '**/*.{jsx,js,json,css,scss,md}'"
   },
   "dependencies": {
+    "@extractus/article-extractor": "^8.0.3",
+    "eventsource-parser": "^1.1.1",
+    "expiry-map": "^2.0.0",
     "jquery": "^3.6.3",
     "jsdom": "^22.1.0",
+    "lodash-es": "^4.17.21",
     "phin": "^3.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "uuid": "^9.0.1",
     "youtube-transcript": "^1.0.6"
   },
   "devDependencies": {
@@ -37,6 +42,7 @@
     "glob": "^10.3.10",
     "prettier": "^3.0.3",
     "vite": "^4.4.11",
-    "vite-plugin-node-polyfills": "^0.15.0"
+    "vite-plugin-node-polyfills": "^0.15.0",
+    "webextension-polyfill": "^0.10.0"
   }
 }

@@ -1,15 +1,12 @@
 import { JSDOM } from 'jsdom'
 
-export async function getLangOptionsWithLink(videoId) {
-  // Get a transcript URL
-  const videoPageResponse = await fetch('https://www.youtube.com/watch?v=' + videoId)
-  const videoPageHtml = await videoPageResponse.text()
-  const splittedHtml = videoPageHtml.split('"captions":')
+export async function getLangOptionsWithLink(pageHtml) {
+  const splittedHtml = pageHtml.split('"captions":')
 
   if (splittedHtml.length < 2) {
     return
   } // No Caption Available
-
+  2
   const captions_json = JSON.parse(splittedHtml[1].split(',"videoDetails')[0].replace('\n', ''))
   const captionTracks = captions_json.playerCaptionsTracklistRenderer.captionTracks
   const languageOptions = Array.from(captionTracks).map((i) => {
@@ -39,8 +36,10 @@ export async function getRawTranscript(link) {
   const transcriptPageXml = await transcriptPageResponse.text()
 
   // Parse Transcript
-  const document = new JSDOM(transcriptPageXml).window.document
-  const textNodes = document.documentElement.childNodes
+  // const dom = new JSDOM(transcriptPageXml)
+  // const { window } = dom
+  // const { document } = window
+  const textNodes = new JSDOM(transcriptPageXml).window.document.documentElement.childNodes
 
   return Array.from(textNodes).map((i) => {
     return {
@@ -51,7 +50,7 @@ export async function getRawTranscript(link) {
   })
 }
 
-export async function getTranscriptHTML(rawTranscript, videoId) {
+export async function getTranscriptHTML(rawTranscript) {
   const scriptObjArr = [],
     timeUpperLimit = 60,
     charInitLimit = 300,
@@ -161,12 +160,12 @@ function convertIntToHms(num) {
   return new Date(num * 1000).toISOString().substring(h, 19).toString()
 }
 
-export async function getConverTranscript({ langOptionsWithLink, videoId, index }) {
+export async function getConverTranscript({ langOptionsWithLink, index }) {
   const rawTranscript = !langOptionsWithLink
     ? []
     : await getRawTranscript(langOptionsWithLink[index ? index : 0].link)
 
-  const transcriptList = !langOptionsWithLink ? [] : await getTranscriptHTML(rawTranscript, videoId)
+  const transcriptList = !langOptionsWithLink ? [] : await getTranscriptHTML(rawTranscript)
 
   return transcriptList
 }
