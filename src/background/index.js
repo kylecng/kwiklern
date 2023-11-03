@@ -4,6 +4,8 @@ import { getProviderConfigs, ProviderType, BASE_URL } from '../config'
 import { ChatGPTProvider, getChatGPTAccessToken, sendMessageFeedback } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
 import { sendMessageToContentScript, getPageFromUrl } from './utils'
+import { signUpNewUser } from '../db'
+
 console.info(
   'BACKGROUND IS RUNNING =======================================================================================================================================================================================================================================================================================================================================================',
 )
@@ -130,3 +132,14 @@ async function getContentDataFromPage(pageHtml, pageUrl = '', tabId) {
     : await getVideoData(pageHtml, tabId)
   return content
 }
+
+Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('message', message)
+  if (message.action === 'SIGNUP_EMAIL_PASSWORD') {
+    signUpNewUser(message.data.email, message.data.password).then(({ data, error }) => {
+      console.log({ data, error })
+      sendResponse({ success: !error })
+    })
+  }
+  return true
+})
