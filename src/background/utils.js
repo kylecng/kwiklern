@@ -1,3 +1,5 @@
+import Browser from 'webextension-polyfill'
+
 export async function sendMessageToContentScript(tabId, message, timeout) {
   const messagePromise = new Promise((resolve) => {
     Browser.tabs.sendMessage(tabId, message, (response) => {

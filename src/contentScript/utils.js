@@ -1,6 +1,8 @@
+import Browser from 'webextension-polyfill'
+
 export async function sendMessageToBackground(message, timeout) {
   const messagePromise = new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response) => {
+    Browser.runtime.sendMessage(message, (response) => {
       console.log('request', message, '\nresponse', response)
       resolve(response)
     })
