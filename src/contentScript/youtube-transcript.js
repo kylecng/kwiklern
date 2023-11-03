@@ -1,5 +1,3 @@
-import { JSDOM } from 'jsdom'
-
 export async function getLangOptionsWithLink(pageHtml) {
   const splittedHtml = pageHtml.split('"captions":')
 
@@ -20,14 +18,15 @@ export async function getLangOptionsWithLink(pageHtml) {
   languageOptions.sort(function (x, y) {
     return x == first ? -1 : y == first ? 1 : 0
   })
-
-  return Array.from(languageOptions).map((langName, index) => {
+  const langOptionsWithLink = Array.from(languageOptions).map((langName, index) => {
     const link = captionTracks.find((i) => i.name.simpleText === langName).baseUrl
     return {
       language: langName,
       link: link,
     }
   })
+
+  return langOptionsWithLink
 }
 
 export async function getRawTranscript(link) {
@@ -36,10 +35,8 @@ export async function getRawTranscript(link) {
   const transcriptPageXml = await transcriptPageResponse.text()
 
   // Parse Transcript
-  // const dom = new JSDOM(transcriptPageXml)
-  // const { window } = dom
-  // const { document } = window
-  const textNodes = new JSDOM(transcriptPageXml).window.document.documentElement.childNodes
+  const textNodes = new DOMParser().parseFromString(transcriptPageXml, 'text/xml').documentElement
+    .childNodes
 
   return Array.from(textNodes).map((i) => {
     return {
@@ -168,4 +165,23 @@ export async function getConverTranscript({ langOptionsWithLink, index }) {
   const transcriptList = !langOptionsWithLink ? [] : await getTranscriptHTML(rawTranscript)
 
   return transcriptList
+}
+
+export async function getVideoContent(pageHtml) {
+  const doc = new DOMParser().parseFromString(pageHtml, 'text/html')
+  // const body = doc.querySelector('body')
+  const url = doc.querySelector('link[rel="canonical"]').getAttribute('href')
+  const title = doc.querySelector('meta[name="title"]').getAttribute('content')
+  const author = doc
+    .querySelector('*[itemprop="author"] > link[itemprop="name"]')
+    .getAttribute('content')
+
+  const langOptionsWithLink = await getLangOptionsWithLink(pageHtml)
+  const transcriptList = await getConverTranscript({ langOptionsWithLink, index: 0 })
+  const content = (
+    transcriptList.map((v) => {
+      return `${v.text}`
+    }) || []
+  ).join('')
+  return { url, title, author, content }
 }

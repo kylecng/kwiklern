@@ -45,7 +45,6 @@ export async function getChatGPTAccessToken() {
 export class ChatGPTProvider {
   constructor(token) {
     this.token = token
-    this.token = token
   }
 
   async fetchModels() {
@@ -69,7 +68,7 @@ export class ChatGPTProvider {
     const cleanup = () => {
       if (conversationId) {
         setConversationProperty(this.token, conversationId, {
-          is_visible: true,
+          is_visible: false,
         })
       }
     }
@@ -97,9 +96,10 @@ export class ChatGPTProvider {
         ],
         model: modelName,
         parent_message_id: uuidv4(),
+        timezone_offset_min: new Date().getTimezoneOffset(),
       }),
       onMessage(message) {
-        console.debug('sse message', message)
+        // console.debug('sse message', message)
         if (message === '[DONE]') {
           params.onEvent({ type: 'done' })
           cleanup()

@@ -3,14 +3,23 @@ import Browser from 'webextension-polyfill'
 import { getProviderConfigs, ProviderType, BASE_URL } from '../config'
 import { ChatGPTProvider, getChatGPTAccessToken, sendMessageFeedback } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
-import { extractFromHtml } from '@extractus/article-extractor'
+import { getPageFromUrl } from '../utils/utils'
+console.info(
+  'BACKGROUND IS RUNNING =======================================================================================================================================================================================================================================================================================================================================================',
+)
 
-console.log('background is running')
-
-function getPrompt(content) {
-  return `Summarize the following:
-  ${content}`
-}
+Browser.runtime.onConnect.addListener(async (port) => {
+  port.onMessage.addListener(async (msg) => {
+    // console.debug('received msg', msg)
+    if (msg.question) {
+      try {
+        await generateAnswers(port, msg)
+      } catch (err) {
+        port.postMessage({ error: err.message })
+      }
+    }
+  })
+})
 
 const contexts = [
   {
@@ -31,65 +40,61 @@ Browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (['summarizeLink', 'summarizePage'].includes(info.menuItemId)) {
     let pageHtml, pageUrl
     if (info.menuItemId === 'summarizeLink') {
-      console.log('summarizeLinkClicked')
       const page = await getPageFromUrl(info.linkUrl)
-      pageHtml = page.pageHtml
-      pageUrl = page.pageUrl
+      pageHtml = page?.pageHtml
+      pageUrl = page?.pageUrl
     } else if (info.menuItemId === 'summarizePage') {
-      console.log('summarizePageClicked')
       const page = await sendMessageToContentScript(tab.id, {
         action: 'GET_PAGE_HTML',
       })
-      pageHtml = page.pageHtml
-      pageUrl = page.pageUrl
+      console.log('page', page)
+      pageHtml = page?.pageHtml
+      pageUrl = page?.pageUrl
     }
 
-    const content = await getContentFromPage(pageHtml, pageUrl)
+    const content = await getContentDataFromPage(pageHtml, pageUrl, tab.id)
     console.log('CONTENT', content)
-    // const port = Browser.runtime.connect()
-    // const prompt = getPrompt(content)
-    // port.onMessage.addListener((msg) => {
-    //   if (msg.text) {
-    //     let text = msg.text || ''
-    //     text = text.replace(/^(\s|:\n\n)+|(:)+|(:\s)$/g, '')
-    //     console.log(text)
-    //   } else if (msg.error) {
-    //     console.log(msg.error)
-    //     port.onMessage.removeListener(listener)
-    //     port.disconnect()
-    //   } else if (msg.event === 'DONE') {
-    //     console.log('done')
-    //     port.onMessage.removeListener(listener)
-    //     port.disconnect()
-    //   }
-    // })
-    // port.postMessage({ question: prompt })
+
+
+    await sendMessageToContentScript(tab.id, {
+      action: 'CALL_SUMMARY',
+      data: { content },
+    })
+    return true
   }
-  return true
 })
 
-Browser.runtime.onConnect.addListener(async (port) => {
-  port.onMessage.addListener(async (msg) => {
-    console.debug('received msg', msg)
-    if (msg.question) {
-      try {
-        await generateAnswers(port, msg.question)
-      } catch (err) {
-        port.postMessage({ error: err.message })
-      }
-    }
-  })
-})
+// async function sendMessageToContentScript(tabId, message) {
+//   return new Promise((resolve) => {
+//     Browser.tabs.sendMessage(tabId, message, (response) => {
+//       console.log('request', message, '\nresponse', response)
+//       resolve(response)
+//     })
+//   })
+// }
 
-async function sendMessageToContentScript(tabId, message) {
-  return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
+async function sendMessageToContentScript(tabId, message, timeout) {
+  // Create a promise for Browser.tabs.sendMessage
+  const messagePromise = new Promise((resolve) => {
+    Browser.tabs.sendMessage(tabId, message, (response) => {
+      console.log('request', message, '\nresponse', response)
       resolve(response)
     })
   })
+
+  if (timeout) {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Message timeout of ${timeout} ms: ${JSON.stringify(message)}`))
+      }, timeout) // Adjust the timeout duration as needed
+    })
+    return Promise.race([messagePromise, timeoutPromise])
+  }
+  return messagePromise
 }
 
-async function generateAnswers(port, question) {
+async function generateAnswers(port, msg) {
+  const { question } = msg
   const providerConfigs = await getProviderConfigs()
 
   let provider
@@ -122,33 +127,35 @@ async function generateAnswers(port, question) {
   })
 }
 
-async function getTranscript(pageHtml) {
-  const langOptionsWithLink = await getLangOptionsWithLink(pageHtml)
-  const transcriptList = await getConverTranscript({ langOptionsWithLink, videoId, index: 0 })
-  const transcript = (
-    transcriptList.map((v) => {
-      return `${v.text}`
-    }) || []
-  ).join('')
-  return transcript
+async function getVideoData(pageHtml, tabId) {
+  const extractedData = await sendMessageToContentScript(
+    tabId,
+    {
+      action: 'EXTRACT_VIDEO_DATA',
+      data: { pageHtml },
+    },
+    10000,
+  )
+  return extractedData
 }
 
-async function getPageFromUrl(linkUrl) {
-  const res = await fetch(linkUrl)
-  const pageHtml = await res.text()
-  const { pageUrl } = res
-  return { pageHtml, pageUrl }
+async function getArticleData(pageHtml, tabId) {
+  const extractedData = await sendMessageToContentScript(
+    tabId,
+    {
+      action: 'EXTRACT_ARTICLE_DATA',
+      data: { pageHtml },
+    },
+    10000,
+  )
+  return extractedData
 }
 
-async function getTextContentFromHtml(pageHtml) {
-  const article = await extractFromHtml(pageHtml)
-  return article
-}
-
-async function getContentFromPage(pageHtml, pageUrl = '') {
+async function getContentDataFromPage(pageHtml, pageUrl = '', tabId) {
   const isYoutubeLink = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(pageUrl)
+  // console.log('isYoutubeLink', isYoutubeLink)
   const content = !isYoutubeLink
-    ? await getTextContentFromHtml(pageHtml)
-    : await getTranscript(pageHtml)
+    ? await getArticleData(pageHtml, tabId)
+    : await getVideoData(pageHtml, tabId)
   return content
 }

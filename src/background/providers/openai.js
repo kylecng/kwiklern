@@ -60,7 +60,7 @@ export class OpenAIProvider {
       },
       body: JSON.stringify(reqParams),
       onMessage(message) {
-        console.debug('sse message', message)
+        // console.debug('sse message', message)
         if (message === '[DONE]') {
           params.onEvent({ type: 'done' })
           return
@@ -84,7 +84,7 @@ export class OpenAIProvider {
             },
           })
         } catch (err) {
-          // console.error(err)
+          console.error(err)
           return
         }
       },
