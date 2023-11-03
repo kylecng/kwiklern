@@ -1,7 +1,7 @@
 import Browser from 'webextension-polyfill'
 import { extractFromHtml } from '@extractus/article-extractor'
 import { getVideoContent } from './youtube-transcript'
-import { getPrompt } from '../utils/utils'
+import { sendMessageToBackground, getPrompt } from './utils'
 
 console.info(
   'CONTENTSCRIPT IS RUNNING ========================================================================================================================================================================================================================================================================================================================================================================================================',

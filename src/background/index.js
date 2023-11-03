@@ -3,7 +3,7 @@ import Browser from 'webextension-polyfill'
 import { getProviderConfigs, ProviderType, BASE_URL } from '../config'
 import { ChatGPTProvider, getChatGPTAccessToken, sendMessageFeedback } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
-import { getPageFromUrl } from '../utils/utils'
+import { sendMessageToContentScript, getPageFromUrl } from './utils'
 console.info(
   'BACKGROUND IS RUNNING =======================================================================================================================================================================================================================================================================================================================================================',
 )
@@ -63,35 +63,6 @@ Browser.contextMenus.onClicked.addListener(async (info, tab) => {
     return true
   }
 })
-
-// async function sendMessageToContentScript(tabId, message) {
-//   return new Promise((resolve) => {
-//     Browser.tabs.sendMessage(tabId, message, (response) => {
-//       console.log('request', message, '\nresponse', response)
-//       resolve(response)
-//     })
-//   })
-// }
-
-async function sendMessageToContentScript(tabId, message, timeout) {
-  // Create a promise for Browser.tabs.sendMessage
-  const messagePromise = new Promise((resolve) => {
-    Browser.tabs.sendMessage(tabId, message, (response) => {
-      console.log('request', message, '\nresponse', response)
-      resolve(response)
-    })
-  })
-
-  if (timeout) {
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Message timeout of ${timeout} ms: ${JSON.stringify(message)}`))
-      }, timeout) // Adjust the timeout duration as needed
-    })
-    return Promise.race([messagePromise, timeoutPromise])
-  }
-  return messagePromise
-}
 
 async function generateAnswers(port, msg) {
   const { question } = msg
