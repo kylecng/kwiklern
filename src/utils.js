@@ -1,9 +1,9 @@
 import Browser from 'webextension-polyfill'
 
-export async function sendMessageToContentScript(tabId, message, timeout) {
+export async function sendMessageToBackground(message, timeout) {
   const messagePromise = new Promise((resolve) => {
-    Browser.tabs
-      .sendMessage(tabId, message)
+    Browser.runtime
+      .sendMessage(message)
       .then((response) => {
         console.log('request', message, '\nresponse', response)
         resolve(response)

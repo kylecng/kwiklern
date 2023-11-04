@@ -1,9 +1,8 @@
-import { getConverTranscript, getLangOptionsWithLink } from './youtube-transcript'
 import Browser from 'webextension-polyfill'
 import { getProviderConfigs, ProviderType, BASE_URL } from '../config'
 import { ChatGPTProvider, getChatGPTAccessToken, sendMessageFeedback } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
-import { sendMessageToContentScript, getPageFromUrl } from './utils'
+import { sendMessageToContentScript } from './utils'
 import { signUpNewUser } from '../db'
 
 console.info(
@@ -98,6 +97,13 @@ async function generateAnswers(port, msg) {
       port.postMessage(event.data)
     },
   })
+}
+
+async function getPageFromUrl(linkUrl) {
+  const res = await fetch(linkUrl)
+  const pageHtml = await res.text()
+  const pageUrl = res.url
+  return { pageHtml, pageUrl }
 }
 
 async function getVideoData(pageHtml, tabId) {

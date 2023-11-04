@@ -1,7 +1,6 @@
 import Browser from 'webextension-polyfill'
 import { extractFromHtml } from '@extractus/article-extractor'
 import { getVideoContent } from './youtube-transcript'
-import { sendMessageToBackground, getPrompt } from './utils'
 
 console.info(
   'CONTENTSCRIPT IS RUNNING ========================================================================================================================================================================================================================================================================================================================================================================================================',
@@ -42,7 +41,17 @@ Browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       }
     }
     port.onMessage.addListener(listener)
-    port.postMessage({ question: prompt })
+    port.postMessage({ question: prompt, arkose_token: message.data.arkose_token })
   }
   return true
 })
+
+function getPrompt(contentData) {
+  const { content, title, author } = contentData
+  return `Your output should use the following template:
+    ### Summary
+    ### Highlights
+    - [Emoji] Bulletpoint
+    
+    Use up to 15 brief bullet points to summarize the content below, Choose an appropriate emoji for each bullet point. and summarize a short highlight: ${title} ${content}.`
+}
