@@ -3,6 +3,7 @@ import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 import manifest from './src/manifest.js'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { onWriteBundle } from './postbuild.js'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -25,6 +26,6 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    plugins: [crx({ manifest }), react(), nodePolyfills()],
+    plugins: [crx({ manifest }), react(), nodePolyfills(), onWriteBundle()],
   }
 })
