@@ -1,10 +1,10 @@
-export async function getLangOptionsWithLink(pageHtml) {
+export async function getLangOptionsFromHtml(pageHtml) {
   const splittedHtml = pageHtml.split('"captions":')
 
   if (splittedHtml.length < 2) {
     return
   } // No Caption Available
-  2
+
   const captions_json = JSON.parse(splittedHtml[1].split(',"videoDetails')[0].replace('\n', ''))
   const captionTracks = captions_json.playerCaptionsTracklistRenderer.captionTracks
   const languageOptions = Array.from(captionTracks).map((i) => {
@@ -18,7 +18,7 @@ export async function getLangOptionsWithLink(pageHtml) {
   languageOptions.sort(function (x, y) {
     return x == first ? -1 : y == first ? 1 : 0
   })
-  const langOptionsWithLink = Array.from(languageOptions).map((langName, index) => {
+  const langOptions = Array.from(languageOptions).map((langName, index) => {
     const link = captionTracks.find((i) => i.name.simpleText === langName).baseUrl
     return {
       language: langName,
@@ -26,7 +26,7 @@ export async function getLangOptionsWithLink(pageHtml) {
     }
   })
 
-  return langOptionsWithLink
+  return langOptions
 }
 
 export async function getRawTranscript(link) {
@@ -157,13 +157,12 @@ function convertIntToHms(num) {
   return new Date(num * 1000).toISOString().substring(h, 19).toString()
 }
 
-export async function getConverTranscript({ langOptionsWithLink, index }) {
-  const rawTranscript = !langOptionsWithLink
+export async function getConvertedTranscript({ langOptions, index }) {
+  const rawTranscript = !langOptions
     ? []
-    : await getRawTranscript(langOptionsWithLink[index ? index : 0].link)
+    : await getRawTranscript(langOptions[index ? index : 0].link)
 
-  const transcriptList = !langOptionsWithLink ? [] : await getTranscriptHTML(rawTranscript)
-
+  const transcriptList = !langOptions ? [] : await getTranscriptHTML(rawTranscript)
   return transcriptList
 }
 
@@ -176,8 +175,8 @@ export async function getVideoContent(pageHtml) {
     .querySelector('*[itemprop="author"] > link[itemprop="name"]')
     .getAttribute('content')
 
-  const langOptionsWithLink = await getLangOptionsWithLink(pageHtml)
-  const transcriptList = await getConverTranscript({ langOptionsWithLink, index: 0 })
+  const langOptions = await getLangOptionsFromHtml(pageHtml)
+  const transcriptList = await getConvertedTranscript({ langOptions, index: 0 })
   const content = (
     transcriptList.map((v) => {
       return `${v.text}`

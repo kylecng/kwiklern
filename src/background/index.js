@@ -83,7 +83,6 @@ async function generateAnswers(port, msg) {
   const controller = new AbortController()
   port.onDisconnect.addListener(() => {
     controller.abort()
-    cleanup?.()
   })
 
   const { cleanup } = await provider.generateAnswer({
@@ -96,6 +95,9 @@ async function generateAnswers(port, msg) {
       }
       port.postMessage(event.data)
     },
+
+  port.onDisconnect.addListener(() => {
+    cleanup?.()
   })
 }
 

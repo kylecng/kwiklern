@@ -12,14 +12,17 @@ Browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     const pageUrl = window.location.href
     const page = { pageHtml, pageUrl }
     sendResponse(page)
+    return true
   } else if (message.action === 'EXTRACT_ARTICLE_DATA') {
     extractFromHtml(message.data.pageHtml).then((extractedData) => {
       sendResponse(extractedData)
     })
+    return true
   } else if (message.action === 'EXTRACT_VIDEO_DATA') {
     getVideoContent(message.data.pageHtml).then((extractedData) => {
       sendResponse(extractedData)
     })
+    return true
   } else if (message.action === 'CALL_SUMMARY') {
     const prompt = getPrompt(message.data.content)
     console.log('prompt', prompt)
@@ -43,7 +46,6 @@ Browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     port.onMessage.addListener(listener)
     port.postMessage({ question: prompt, arkose_token: message.data.arkose_token })
   }
-  return true
 })
 
 function getPrompt(contentData) {
