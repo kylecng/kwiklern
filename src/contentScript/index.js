@@ -44,7 +44,7 @@ Browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       }
     }
     port.onMessage.addListener(listener)
-    port.postMessage({ question: prompt, arkose_token: message.data.arkose_token })
+    port.postMessage({ question: prompt })
   }
 })
 

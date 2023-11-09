@@ -16,6 +16,7 @@ Browser.runtime.onConnect.addListener(async (port) => {
       try {
         await generateAnswers(port, msg)
       } catch (err) {
+        // console.error(err)
         port.postMessage({ error: err.message })
       }
     }
@@ -56,7 +57,6 @@ Browser.contextMenus.onClicked.addListener(async (info, tab) => {
     const content = await getContentDataFromPage(pageHtml, pageUrl, tab.id)
     console.log('CONTENT', content)
 
-
     await sendMessageToContentScript(tab.id, {
       action: 'CALL_SUMMARY',
       data: { content },
@@ -95,6 +95,7 @@ async function generateAnswers(port, msg) {
       }
       port.postMessage(event.data)
     },
+  })
 
   port.onDisconnect.addListener(() => {
     cleanup?.()

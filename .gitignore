@@ -23,3 +23,7 @@
 secrets.*.js
 /secrets
 /src/secrets
+/src/background/providers/security.js
+
+# postbuild
+postbuild.js
