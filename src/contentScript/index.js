@@ -50,10 +50,12 @@ Browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
 function getPrompt(contentData) {
   const { content, title, author } = contentData
-  return `Your output should use the following template:
+  return `Use up to 15 brief bullet points to summarize the content below, Choose an appropriate emoji for each bullet point
+  Also return a comma-separated array of tags within brackets.
+  Your output should use the following template:
+    ### Tags [tag1, tag2, ...]
     ### Summary
-    ### Highlights
     - [Emoji] Bulletpoint
     
-    Use up to 15 brief bullet points to summarize the content below, Choose an appropriate emoji for each bullet point. and summarize a short highlight: ${title} ${content}.`
+    ${title} ${content}.`
 }

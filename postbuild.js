@@ -20,15 +20,16 @@ export function onWriteBundle() {
           map,
           preliminaryFileName,
           sourcemapFileName,
-          //   code,
+          code,
           ...restChunk
         } = chunk
         const { name } = restChunk
         if (
-          ['.png', '.json', '.css'].some((substring) => fileName.endsWith(substring)) ||
-          ['service-worker', 'popup', 'devtools', 'options', 'polyfill', 'index', 'client'].some(
-            (substring) => fileName.includes(substring) || (name && name.includes(substring)),
-          )
+          // ['.png', '.json', '.css'].some((substring) => fileName.endsWith(substring)) ||
+          // ['service-worker', 'popup', 'devtools', 'options', 'polyfill', 'index', 'client'].some(
+          //   (substring) => fileName.includes(substring) || (name && name.includes(substring)),
+          // )
+          !fileName.includes('chunk')
         )
           return
         console.log(restChunk)

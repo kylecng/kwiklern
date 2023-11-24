@@ -168,12 +168,17 @@ export async function getConvertedTranscript({ langOptions, index }) {
 
 export async function getVideoContent(pageHtml) {
   const doc = new DOMParser().parseFromString(pageHtml, 'text/html')
-  // const body = doc.querySelector('body')
   const url = doc.querySelector('link[rel="canonical"]').getAttribute('href')
   const title = doc.querySelector('meta[name="title"]').getAttribute('content')
-  const author = doc
-    .querySelector('*[itemprop="author"] > link[itemprop="name"]')
-    .getAttribute('content')
+  const author = {
+    name: doc.querySelector('*[itemprop="author"] > link[itemprop="name"]').getAttribute('content'),
+    url: doc.querySelector('*[itemprop="author"] > link[itemprop="url"]').getAttribute('href'),
+    image_url: [
+      ...pageHtml.matchAll(
+        /channelAvatar([:"'{}\[\]\\]*)thumbnails([:"'{}\[\]\\]*)url([:"'{}\[\]\\]*)([^"'{}\[\]\\]*)([:"'{}\[\]\\]*)/gm,
+      ),
+    ][0][4],
+  }
 
   const langOptions = await getLangOptionsFromHtml(pageHtml)
   const transcriptList = await getConvertedTranscript({ langOptions, index: 0 })
