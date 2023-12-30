@@ -62,7 +62,6 @@ export async function getUserConfig() {
 }
 
 export async function updateUserConfig(updates) {
-  console.debug('update configs', updates)
   return Browser.storage.local.set(updates)
 }
 

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { fetchSSE } from '../fetch-sse'
 import { BASE_URL } from '../../config'
 import { getSecurityToken } from './security'
+import { devErr, devLog, trySilent } from '../../utils'
 
 async function request(token, method, path, data) {
   return fetch(`${BASE_URL}/backend-api${path}`, {
@@ -58,13 +59,12 @@ export class ChatGPTProvider {
       const models = await this.fetchModels()
       return models[0].slug
     } catch (err) {
-      console.error(err)
+      devErr(err)
       return 'text-davinci-002-render-sha'
     }
   }
 
   async generateAnswer(params) {
-    // console.debug('params:', params)
     const security_token = getSecurityToken && getSecurityToken()
 
     let conversationId

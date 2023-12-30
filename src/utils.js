@@ -1,27 +1,59 @@
-import Browser from 'webextension-polyfill'
+export const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
-export async function sendMessageToBackground(message, timeout) {
-  const messagePromise = new Promise((resolve) => {
-    Browser.runtime
-      .sendMessage(message)
-      .then((response) => {
-        console.log('request', message, '\nresponse', response)
-        resolve(response)
-      })
-      .catch((error) => {
-        // Handle any errors here
-        console.error('Error:', error)
-        resolve(null) // Resolve the promise with null or an appropriate value
-      })
-  })
+export const randDate = () => {
+  const today = new Date()
+  const threeYearsAgo = new Date()
+  threeYearsAgo.setFullYear(today.getFullYear() - 1)
 
-  if (timeout) {
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Message timeout of ${timeout} ms: ${JSON.stringify(message)}`))
-      }, timeout)
-    })
-    return Promise.race([messagePromise, timeoutPromise])
+  const randomTimestamp =
+    Math.random() * (today.getTime() - threeYearsAgo.getTime()) + threeYearsAgo.getTime()
+  const randomDate = new Date(randomTimestamp)
+
+  return randomDate
+}
+
+export const sleep = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export const trySilent = (func) => {
+  try {
+    func()
+    return true
+  } catch {}
+}
+
+export const tryReturn = (func) => {
+  try {
+    return func()
+  } catch {}
+}
+
+export const devLog = (...args) => {
+  if (import.meta.env.DEV) {
+    const callerInfo = new Error().stack.split('\n')[2].trim()
+    console.log(`%c${callerInfo}\n`, 'color: blue; font-weight: bold;', ...args)
   }
-  return messagePromise
+}
+
+export const devErr = (...args) => {
+  if (import.meta.env.DEV) {
+    const callerInfo = new Error().stack.split('\n')[2].trim()
+    console.error(`%c${callerInfo}\n`, 'color: red; font-weight: bold;', ...args)
+  }
+}
+
+export const devInfo = (...args) => {
+  if (import.meta.env.DEV) {
+    const callerInfo = new Error().stack.split('\n')[2].trim()
+    console.info(`%c${callerInfo}\n`, 'color: green; font-weight: bold;', ...args)
+  }
+}
+
+export const getErrStr = (error) => {
+  return (
+    tryReturn(() => error.message) ||
+    tryReturn(() => JSON.parse(error)) ||
+    tryReturn(() => error.toString())
+  )
 }

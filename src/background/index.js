@@ -1,11 +1,11 @@
 import Browser from 'webextension-polyfill'
-import { getProviderConfigs, ProviderType, BASE_URL } from '../config'
-import { ChatGPTProvider, getChatGPTAccessToken, sendMessageFeedback } from './providers/chatgpt'
+import { getProviderConfigs, ProviderType } from '../config'
+import { ChatGPTProvider, getChatGPTAccessToken } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
-import { sendMessageToContentScript } from './utils'
-import { signUpNewUser } from '../db'
+import { getPrompt, parseSummaryText, sendMessageToContentScript } from './utils'
+import { trySilent, devLog, devErr, devInfo, getErrStr } from '../utils'
 
-console.info(
+devInfo(
   'BACKGROUND IS RUNNING =======================================================================================================================================================================================================================================================================================================================================================',
 )
 
