@@ -78,59 +78,81 @@ export class ChatGPTProvider {
     }
 
     const modelName = await this.getModelName()
-
-    await fetchSSE(`${BASE_URL}/backend-api/conversation`, {
-      method: 'POST',
-      signal: params.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: JSON.stringify({
-        action: 'next',
-        messages: [
-          {
-            id: uuidv4(),
-            role: 'user',
-            content: {
-              content_type: 'text',
-              parts: [params.prompt],
+    try {
+      await fetchSSE(`${BASE_URL}/backend-api/conversation`, {
+        method: 'POST',
+        signal: params.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.token}`,
+        },
+        body: JSON.stringify({
+          action: 'next',
+          messages: [
+            {
+              id: uuidv4(),
+              role: 'user',
+              content: {
+                content_type: 'text',
+                parts: [params.prompt],
+              },
             },
-          },
-        ],
-        model: modelName,
-        arkose_token: security_token || null,
-        parent_message_id: uuidv4(),
-        timezone_offset_min: new Date().getTimezoneOffset(),
-      }),
-      onMessage(message) {
-        // console.debug('sse message', message)
-        if (message === '[DONE]') {
-          params.onEvent({ type: 'done' })
-          cleanup()
-          return
-        }
-        let data
-        try {
-          data = JSON.parse(message)
-        } catch (err) {
-          console.error(err)
-          return
-        }
-        const text = data.message?.content?.parts?.[0]
-        if (text) {
-          conversationId = data.conversation_id
-          params.onEvent({
-            type: 'answer',
-            data: {
-              text,
-              messageId: data.message.id,
-              conversationId: data.conversation_id,
-            },
-          })
-        }
-      },
-    })
-    return { cleanup }
+          ],
+          model: modelName,
+          arkose_token: security_token || null,
+          parent_message_id: uuidv4(),
+          timezone_offset_min: new Date().getTimezoneOffset(),
+        }),
+        onMessage(message) {
+          try {
+            try {
+              const d = JSON.parse(message)
+              const a = d?.message?.author?.role
+              const c = d?.message?.content?.parts?.[0]
+              devLog(a, c, d)
+            } catch (e) {
+              devLog(message)
+              if (message !== '[DONE]') devErr(e)
+            }
+            if (message === '[DONE]') {
+              params.onEvent({ status: 'DONE' })
+              return
+            }
+            let data
+            try {
+              data = JSON.parse(message)
+            } catch (err) {
+              return
+            }
+            const error = data.error
+            if (error) throw error
+            const messageId = data.message?.id
+            const text =
+              data?.message?.author?.role === 'assistant' ? data?.message?.content?.parts?.[0] : ''
+            if (text) {
+              conversationId = data.conversation_id
+              params.onEvent({
+                status: 'ANSWER',
+                data: {
+                  text,
+                  messageId,
+                  conversationId,
+                },
+              })
+            }
+          } catch (err) {
+            devErr(err)
+            // throw err
+            trySilent(params.onEvent({ status: 'ERROR', error: err }))
+          }
+        },
+      })
+    } catch (err) {
+      devErr(err)
+      // throw err
+      trySilent(params.onEvent({ status: 'ERROR', error: err }))
+    } finally {
+      return { cleanup }
+    }
   }
 }

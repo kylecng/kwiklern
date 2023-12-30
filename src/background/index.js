@@ -3,6 +3,9 @@ import { getProviderConfigs, ProviderType } from '../config'
 import { ChatGPTProvider, getChatGPTAccessToken } from './providers/chatgpt'
 import { OpenAIProvider } from './providers/openai'
 import { getPrompt, parseSummaryText, sendMessageToContentScript } from './utils'
+import { Database } from '../database'
+import { isEmpty, isString } from 'bellajs'
+import EventEmitter from 'events'
 import { trySilent, devLog, devErr, devInfo, getErrStr } from '../utils'
 
 devInfo(
@@ -11,15 +14,21 @@ devInfo(
 
 Browser.runtime.onConnect.addListener(async (port) => {
   port.onMessage.addListener(async (msg) => {
-    // console.debug('received msg', msg)
-    if (msg.question) {
-      try {
-        await generateAnswers(port, msg)
-      } catch (err) {
-        // console.error(err)
-        port.postMessage({ error: err.message })
-      }
-    }
+    if (!msg) return
+    if (msg?.data !== 'ping' && msg?.data !== '{"type":"ping"}' && msg?.type !== 'connected')
+      devLog('port->generateAnswers', msg)
+    const { prompt, isSendStatusOnly, isUseAutoTags, hasStoredSummary, contentData, summaryData } =
+      msg
+    if (!prompt || !isString(prompt)) return
+    const { emitter, controller } = messageHandler({
+      port,
+      isSendStatusOnly,
+      isUseAutoTags,
+      hasStoredSummary,
+      contentData,
+      summaryData,
+    })
+    await generateAnswers({ emitter, controller, prompt })
   })
 })
 
@@ -35,120 +44,189 @@ const contexts = [
     contexts: ['page'],
   },
 ]
-contexts.forEach((context) => Browser.contextMenus.create(context))
 
-// Add an event listener to handle the context menu item click
+;(async () => {
+  await Browser.contextMenus.removeAll()
+  contexts.forEach((context) => Browser.contextMenus.create(context))
+})()
+
+// Add an event emitter to handle the context menu item click
 Browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (['summarizeLink', 'summarizePage'].includes(info.menuItemId)) {
-    let pageHtml, pageUrl
-    if (info.menuItemId === 'summarizeLink') {
-      const page = await getPageFromUrl(info.linkUrl)
-      pageHtml = page?.pageHtml
-      pageUrl = page?.pageUrl
-    } else if (info.menuItemId === 'summarizePage') {
-      const page = await sendMessageToContentScript(tab.id, {
-        action: 'GET_PAGE_HTML',
-      })
-      console.log('page', page)
-      pageHtml = page?.pageHtml
-      pageUrl = page?.pageUrl
+    const { user, session, error } = await Database.getSession()
+    if (error || isEmpty(session)) {
+      return
     }
 
-    const content = await getContentDataFromPage(pageHtml, pageUrl, tab.id)
-    console.log('CONTENT', content)
+    const data =
+      info.menuItemId === 'summarizeLink'
+        ? { linkUrl: info.linkUrl }
+        : info.menuItemId === 'summarizePage'
+          ? {}
+          : null
 
-    await sendMessageToContentScript(tab.id, {
-      action: 'CALL_SUMMARY',
-      data: { content },
+    const response = await sendMessageToContentScript(tab.id, {
+      action: 'CALL_SUMMARY_STREAM',
+      data,
     })
-    return true
+    if (!response) return
+    const { summaryData, contentData } = response
+    await Database.createSummary(summaryData, contentData)
   }
 })
 
-async function generateAnswers(port, msg) {
-  const { question } = msg
-  const providerConfigs = await getProviderConfigs()
+async function generateAnswers({ emitter, controller, prompt }) {
+  if (!prompt || !isString(prompt)) return
+  let cleanup
+  try {
+    const providerConfigs = await getProviderConfigs()
+    let provider
+    if (providerConfigs.provider === ProviderType.ChatGPT) {
+      const token = await getChatGPTAccessToken()
+      provider = new ChatGPTProvider(token)
+    } else if (providerConfigs.provider === ProviderType.GPT3) {
+      const { apiKey, model } = providerConfigs.configs[ProviderType.GPT3]
+      provider = new OpenAIProvider(apiKey, model)
+    } else {
+      throw new Error(`Unknown provider ${providerConfigs.provider}`)
+    }
 
-  let provider
-  if (providerConfigs.provider === ProviderType.ChatGPT) {
-    const token = await getChatGPTAccessToken()
-    provider = new ChatGPTProvider(token)
-  } else if (providerConfigs.provider === ProviderType.GPT3) {
-    const { apiKey, model } = providerConfigs.configs[ProviderType.GPT3]
-    provider = new OpenAIProvider(apiKey, model)
-  } else {
-    throw new Error(`Unknown provider ${providerConfigs.provider}`)
+    ;({ cleanup } = await provider.generateAnswer({
+      prompt,
+      signal: controller.signal,
+      onEvent(event) {
+        // const msg = event.status === 'DONE' ? { status: 'DONE' } : event.data
+        emitter?.emit('message', event)
+      },
+    }))
+  } catch (error) {
+    trySilent(() => emitter?.emit('message', { error: error, status: 'ERROR' }))
+  } finally {
+    trySilent(() => cleanup?.())
+    trySilent(() => emitter.emit('doCleanup', () => {}))
   }
-
-  const controller = new AbortController()
-  port.onDisconnect.addListener(() => {
-    controller.abort()
-  })
-
-  const { cleanup } = await provider.generateAnswer({
-    prompt: question,
-    signal: controller.signal,
-    onEvent(event) {
-      if (event.type === 'done') {
-        port.postMessage({ event: 'DONE' })
-        return
-      }
-      port.postMessage(event.data)
-    },
-  })
-
-  port.onDisconnect.addListener(() => {
-    cleanup?.()
-  })
 }
 
-async function getPageFromUrl(linkUrl) {
-  const res = await fetch(linkUrl)
-  const pageHtml = await res.text()
-  const pageUrl = res.url
-  return { pageHtml, pageUrl }
-}
-
-async function getVideoData(pageHtml, tabId) {
-  const extractedData = await sendMessageToContentScript(
-    tabId,
-    {
-      action: 'EXTRACT_VIDEO_DATA',
-      data: { pageHtml },
-    },
-    10000,
-  )
-  return extractedData
-}
-
-async function getArticleData(pageHtml, tabId) {
-  const extractedData = await sendMessageToContentScript(
-    tabId,
-    {
-      action: 'EXTRACT_ARTICLE_DATA',
-      data: { pageHtml },
-    },
-    10000,
-  )
-  return extractedData
-}
-
-async function getContentDataFromPage(pageHtml, pageUrl = '', tabId) {
-  const isYoutubeLink = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(pageUrl)
-  // console.log('isYoutubeLink', isYoutubeLink)
-  const content = !isYoutubeLink
-    ? await getArticleData(pageHtml, tabId)
-    : await getVideoData(pageHtml, tabId)
-  return content
+const handleDatabaseCall = (func, params = [], sendResponse) => {
+  if (Database[func].constructor.name === 'AsyncFunction') {
+    Database[func](...params)
+      .then(({ error, ...data }) => {
+        if (error) throw error
+        sendResponse({ ...data })
+      })
+      .catch((error) => {
+        devErr(error)
+        sendResponse({ error })
+      })
+  } else {
+    try {
+      const data = Database[func](...params)
+      sendResponse(data)
+    } catch (error) {
+      devErr(error)
+      sendResponse({ error })
+    }
+  }
 }
 
 Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('message', message)
-  if (message.action === 'SIGNUP_EMAIL_PASSWORD') {
-    signUpNewUser(message.data.email, message.data.password).then(({ data, error }) => {
-      console.log({ data, error })
-      sendResponse({ success: !error })
-    })
+  if (message?.action === 'OPEN_MAIN_PAGE') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('main.html') })
+    sendResponse({})
+  } else if (message?.action === 'GET_PROMPT') {
+    getPrompt(message?.data?.contentData, message?.data?.isUseAutoTags)
+      .then((prompt) => {
+        sendResponse({ prompt })
+      })
+      .catch((error) => {
+        devErr(error)
+        sendResponse({ error })
+      })
+  } else if (message?.type === 'DATABASE') {
+    handleDatabaseCall(message?.action, message?.data, sendResponse)
+  } else {
+    devErr('Invalid message to background', message)
+    sendResponse({ error: 'Invalid message to background' })
   }
+
   return true
 })
+
+const messageHandler = ({
+  port,
+  isSendStatusOnly,
+  isUseAutoTags,
+  hasStoredSummary,
+  contentData,
+  summaryData,
+}) => {
+  const controller = new AbortController()
+  const emitter = new EventEmitter()
+
+  let text, autoTags
+  emitter.on('message', async (msg) => {
+    if (!msg) return
+    const { status, error, data } = msg
+    devLog(msg)
+    const outMsg = {}
+    const { text: newText, autoTags: newAutoTags } = parseSummaryText(data?.text)
+    if (isString(newText) && newText) text = newText
+    if (isUseAutoTags && !isEmpty(newAutoTags)) autoTags = newAutoTags
+
+    if (isSendStatusOnly) {
+      if (status) {
+        trySilent(() => port?.postMessage({ status, error: getErrStr(error) }))
+      }
+    } else {
+      trySilent(() =>
+        port?.postMessage({
+          status,
+          error: getErrStr(error),
+          data: {
+            ...data,
+            ...(isString(newText) && newText ? { text: newText } : {}),
+            ...(isUseAutoTags && !isEmpty(newAutoTags) ? { autoTags: newAutoTags } : {}),
+          },
+        }),
+      )
+    }
+
+    if (status === 'DONE') {
+      summaryData = {
+        ...summaryData,
+        ...(isString(text) && text ? { text } : {}),
+        ...(isUseAutoTags && !isEmpty(autoTags) ? { autoTags } : {}),
+      }
+
+      try {
+        let { hasSummary, error } = await Database.checkHasSummary(contentData)
+        if (error) throw error
+        ;({ error } = hasSummary
+          ? await Database.updateSummary(summaryData, contentData)
+          : await Database.createSummary(summaryData, contentData))
+        if (error) throw error
+      } catch (err) {
+        devErr(err)
+      }
+    }
+  })
+
+  emitter.on('doCleanup', () => {
+    trySilent(() => controller?.abort())
+    trySilent(() => emitter?.removeAllListeners())
+    trySilent(() => port?.postMessage({ status: 'DISCONNECT' }))
+  })
+
+  port?.onDisconnect.addListener(() => {
+    emitter.emit('doCleanup', () => {})
+  })
+  return { emitter, controller }
+}
+
+// try {
+//   const prompt = `Who are you?`
+//   const { emitter, controller } = messageHandler({})
+//   generateAnswers({ emitter, controller, prompt })
+// } catch (error) {
+//   devErr(error)
+// }

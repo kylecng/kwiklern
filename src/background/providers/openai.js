@@ -1,5 +1,6 @@
 import { fetchSSE } from '../fetch-sse'
 import { getProviderConfigs, ProviderType, DEFAULT_MODEL, DEFAULT_API_HOST } from '../../config'
+import { devErr, trySilent } from '../../utils'
 
 export class OpenAIProvider {
   constructor(token, model) {
@@ -51,44 +52,50 @@ export class OpenAIProvider {
     }
 
     let result = ''
-    await fetchSSE(url, {
-      method: 'POST',
-      signal: params.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: JSON.stringify(reqParams),
-      onMessage(message) {
-        // console.debug('sse message', message)
-        if (message === '[DONE]') {
-          params.onEvent({ type: 'done' })
-          return
-        }
-        let data
-        try {
-          data = JSON.parse(message)
-          const text =
-            gptModel === 'text-davinci-003' ? data.choices[0].text : data.choices[0].delta.content
+    try {
+      await fetchSSE(url, {
+        method: 'POST',
+        signal: params.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.token}`,
+        },
+        body: JSON.stringify(reqParams),
+        onMessage(message) {
+          try {
+            if (message === '[DONE]') {
+              params.onEvent({ status: 'DONE' })
+              return
+            }
+            let data
+            data = JSON.parse(message)
+            const text =
+              gptModel === 'text-davinci-003' ? data.choices[0].text : data.choices[0].delta.content
 
-          if (text === undefined || text === '<|im_end|>' || text === '<|im_sep|>') {
+            if (text === undefined || text === '<|im_end|>' || text === '<|im_sep|>') {
+              return
+            }
+            result += text
+            params.onEvent({
+              status: 'ANSWER',
+              data: {
+                text: result,
+                messageId: data.id,
+                conversationId: data.id,
+              },
+            })
+          } catch (err) {
+            devErr(err)
             return
           }
-          result += text
-          params.onEvent({
-            type: 'answer',
-            data: {
-              text: result,
-              messageId: data.id,
-              conversationId: data.id,
-            },
-          })
-        } catch (err) {
-          console.error(err)
-          return
-        }
-      },
-    })
-    return {}
+        },
+      })
+    } catch (err) {
+      devErr(err)
+      // throw err
+      trySilent(params.onEvent({ status: 'ERROR', error: err }))
+    } finally {
+      return {}
+    }
   }
 }
