@@ -4,15 +4,16 @@ import react from '@vitejs/plugin-react'
 import manifest from './src/manifest.js'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { onWriteBundle } from './postbuild.js'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
     server: {
-      port: 5173,
-      strictPort: true,
+      port: 5174,
+      // strictPort: true,
       hmr: {
-        port: 5173,
+        port: 5174,
       },
     },
 
@@ -24,6 +25,10 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'assets/chunk-[hash].js',
         },
       },
+    },
+
+    alias: {
+      react: path.resolve('./node_modules/react'),
     },
 
     plugins: [crx({ manifest }), react(), nodePolyfills(), onWriteBundle()],
