@@ -1,20 +1,18 @@
 import { useState } from 'react'
-import './Popup.css'
-import { sendMessageToBackground } from '../utils'
+import { sendMessageToBackground } from '../../utils'
 
-export const Popup = () => {
+export default () => {
   const link = 'https://github.com/guocaoyi/create-chrome-ext'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log(email, password)
-    const { success } = await sendMessageToBackground({
-      action: 'SIGNUP_EMAIL_PASSWORD',
-      data: { email, password },
+    const response = await sendMessageToBackground({
+      action: 'signUp',
+      type: 'DATABASE',
+      data: [email, password],
     })
-    console.log('success', success)
   }
 
   return (
@@ -43,5 +41,3 @@ export const Popup = () => {
     </main>
   )
 }
-
-export default Popup

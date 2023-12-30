@@ -13,7 +13,7 @@ export default defineManifest({
     128: 'img/logo-128.png',
   },
   action: {
-    default_popup: 'src/popup/popup.html',
+    default_popup: 'popup.html',
     default_icon: 'img/logo-48.png',
   },
   background: {
@@ -22,8 +22,14 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ['http://*/*', 'https://*/*'],
-      js: ['src/contentScript/index.js'],
+      matches: [
+        // 'http://*/*',
+        // 'https://*/*',
+        // 'file://*/*',
+        '*://www.youtube.com/*',
+        // 'https://www.youtube.com/watch?v=R5i8alK5hPo',
+      ],
+      js: ['src/contentScript/index.jsx'],
     },
   ],
   web_accessible_resources: [
