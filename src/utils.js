@@ -1,3 +1,5 @@
+export const IS_DEV_MODE = import.meta.env.DEV
+
 export const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
 export const randDate = () => {
@@ -30,21 +32,21 @@ export const tryReturn = (func) => {
 }
 
 export const devLog = (...args) => {
-  if (import.meta.env.DEV) {
+  if (IS_DEV_MODE) {
     const callerInfo = new Error().stack.split('\n')[2].trim()
     console.log(`%c${callerInfo}\n`, 'color: blue; font-weight: bold;', ...args)
   }
 }
 
 export const devErr = (...args) => {
-  if (import.meta.env.DEV) {
+  if (IS_DEV_MODE) {
     const callerInfo = new Error().stack.split('\n')[2].trim()
     console.error(`%c${callerInfo}\n`, 'color: red; font-weight: bold;', ...args)
   }
 }
 
 export const devInfo = (...args) => {
-  if (import.meta.env.DEV) {
+  if (IS_DEV_MODE) {
     const callerInfo = new Error().stack.split('\n')[2].trim()
     console.info(`%c${callerInfo}\n`, 'color: green; font-weight: bold;', ...args)
   }

@@ -6,6 +6,14 @@ import { sendMessageToBackground } from '../../utils'
 const Login = () => {
   const [session, setSession] = useState(null)
 
+  useEffect(() => {
+    sendMessageToBackground({
+      action: 'getSession',
+      type: 'DATABASE',
+    }).then(({ user, session, error }) => {
+      setSession(session)
+    })
+  }, [])
 
   if (session) {
     return <Navigate to="/" replace={true} />

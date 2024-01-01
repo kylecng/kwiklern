@@ -6,11 +6,17 @@ import { getPrompt, parseSummaryText, sendMessageToContentScript } from './utils
 import { Database } from '../database'
 import { isEmpty, isString } from 'bellajs'
 import EventEmitter from 'events'
-import { trySilent, devLog, devErr, devInfo, getErrStr } from '../utils'
+import { trySilent, devLog, devErr, devInfo, getErrStr, IS_DEV_MODE } from '../utils'
+import { testEmail, testPassword } from '../secrets/secrets.supabase'
 
 devInfo(
   'BACKGROUND IS RUNNING =======================================================================================================================================================================================================================================================================================================================================================',
 )
+
+// LIGMA
+if (IS_DEV_MODE) Database.signInWithPassword(testEmail, testPassword)
+
+Database.getSession()
 
 Browser.runtime.onConnect.addListener(async (port) => {
   port.onMessage.addListener(async (msg) => {
