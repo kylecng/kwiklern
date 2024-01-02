@@ -20,9 +20,13 @@ Database.getSession()
 
 Browser.runtime.onConnect.addListener(async (port) => {
   port.onMessage.addListener(async (msg) => {
-    if (!msg) return
-    if (msg?.data !== 'ping' && msg?.data !== '{"type":"ping"}' && msg?.type !== 'connected')
-      devLog('port->generateAnswers', msg)
+    if (
+      !msg ||
+      msg?.data === 'ping' ||
+      msg?.data === '{"type":"ping"}' ||
+      msg?.type === 'connected'
+    )
+      return
     const { prompt, isSendStatusOnly, isUseAutoTags, hasStoredSummary, contentData, summaryData } =
       msg
     if (!prompt || !isString(prompt)) return
@@ -151,8 +155,9 @@ Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message?.type === 'DATABASE') {
     handleDatabaseCall(message?.action, message?.data, sendResponse)
   } else {
-    devErr('Invalid message to background', message)
-    sendResponse({ error: 'Invalid message to background' })
+    const errMsg = 'Invalid message to background'
+    devErr(errMsg, message)
+    sendResponse({ error: errMsg })
   }
 
   return true
@@ -173,7 +178,6 @@ const messageHandler = ({
   emitter.on('message', async (msg) => {
     if (!msg) return
     const { status, error, data } = msg
-    devLog(msg)
     const outMsg = {}
     const { text: newText, autoTags: newAutoTags } = parseSummaryText(data?.text)
     if (isString(newText) && newText) text = newText

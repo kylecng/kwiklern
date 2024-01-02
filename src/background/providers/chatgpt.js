@@ -105,15 +105,6 @@ export class ChatGPTProvider {
         }),
         onMessage(message) {
           try {
-            try {
-              const d = JSON.parse(message)
-              const a = d?.message?.author?.role
-              const c = d?.message?.content?.parts?.[0]
-              devLog(a, c, d)
-            } catch (e) {
-              devLog(message)
-              if (message !== '[DONE]') devErr(e)
-            }
             if (message === '[DONE]') {
               params.onEvent({ status: 'DONE' })
               return

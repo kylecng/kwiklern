@@ -69,7 +69,6 @@ const SearchAutocomplete = (props) => {
       )}
       onChange={(event, value) => {
         // if (value) return onChange(value);
-        devLog(value)
       }}
     />
   )

@@ -89,7 +89,6 @@ const injectCustomComponents = async () => {
           return { videoId, videoUrl, videoElementId }
         }),
       )
-      devLog('initialVideosData', initialVideosData)
 
       createRoot(document.getElementById(customId)).render(
         <YoutubePlaylist initialVideosData={initialVideosData} />,

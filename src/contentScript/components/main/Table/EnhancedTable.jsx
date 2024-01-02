@@ -200,10 +200,8 @@ const EnhancedTable = (props) => {
   }, [])
 
   // useEffect(() => {
-  //   devLog('rows:', rows)
   //   if (isFirstRender) return
   //   rows.forEach((row) => processTokenizedDataRow(row))
-  //   devLog('searchCache.summaries:', searchCache.summaries)
   // }, [rows])
 
   const getDefaultHeaderCell = (value, icon) => (
