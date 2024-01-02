@@ -26,11 +26,11 @@ export async function setConversationProperty(token, conversationId, propertyObj
 
 const KEY_ACCESS_TOKEN = 'accessToken'
 
-const cache = new ExpiryMap(10 * 1000)
+const tokenCache = new ExpiryMap(10 * 1000)
 
 export async function getChatGPTAccessToken() {
-  if (cache.get(KEY_ACCESS_TOKEN)) {
-    return cache.get(KEY_ACCESS_TOKEN)
+  if (tokenCache.get(KEY_ACCESS_TOKEN)) {
+    return tokenCache.get(KEY_ACCESS_TOKEN)
   }
   const resp = await fetch(`${BASE_URL}/api/auth/session`)
   if (resp.status === 403) {
@@ -40,7 +40,7 @@ export async function getChatGPTAccessToken() {
   if (!data.accessToken) {
     throw new Error('UNAUTHORIZED')
   }
-  cache.set(KEY_ACCESS_TOKEN, data.accessToken)
+  tokenCache.set(KEY_ACCESS_TOKEN, data.accessToken)
   return data.accessToken
 }
 

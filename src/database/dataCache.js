@@ -1,7 +1,7 @@
-const cache = {
+const dataCache = {
   userData: {},
   summaries: {},
   contents: {},
   authors: {},
 }
-export { cache }
+export { dataCache }

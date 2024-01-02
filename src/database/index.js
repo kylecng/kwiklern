@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { supabaseUrl, supabaseKey } from '../secrets/secrets.supabase'
-import { cache } from './cache'
+import { dataCache } from './dataCache'
 import { devErr, devLog } from '../utils'
 
 const isEmpty = (data) => {
@@ -91,7 +91,7 @@ class Database {
         if (user) this.user = user
         if (session) this.session = session
         ;({ userData, error } = await this.createUserData())
-        if (userData) cache.userData = userData
+        if (userData) dataCache.userData = userData
       }
       return { user, session, userData }
     } catch (err) {
@@ -113,7 +113,7 @@ class Database {
         if (user) this.user = user
         if (session) this.session = session
         ;({ userData, error } = await this.getUserData())
-        if (userData) cache.userData = userData
+        if (userData) dataCache.userData = userData
       }
       return { user, session, userData }
     } catch (err) {
@@ -138,7 +138,7 @@ class Database {
 
       if (!isEmpty(data)) {
         userData = data[0]
-        cache.userData = userData
+        dataCache.userData = userData
       }
       return { userData }
     } catch (err) {
@@ -154,7 +154,7 @@ class Database {
 
       if (!isEmpty(data)) {
         userData = data[0]
-        cache.userData = userData
+        dataCache.userData = userData
       } else {
       }
       return { userData }
@@ -180,7 +180,7 @@ class Database {
         author = data[0]
       }
 
-      cache.authors[id] = author
+      dataCache.authors[id] = author
       return { author }
     } catch (err) {
       return { error: err, author }
@@ -193,8 +193,8 @@ class Database {
       ;({ id, error } = this.getAuthorId({ author: authorData }))
       if (error) throw error
       if (!id) return {}
-      if (cache.authors?.[id]) {
-        return { author: cache.authors[id] }
+      if (dataCache.authors?.[id]) {
+        return { author: dataCache.authors[id] }
       }
       ;({ data, error } = await supabase.from('authors').select().eq('id', id))
       if (error) throw error
@@ -205,7 +205,7 @@ class Database {
         ;({ author, error } = await this.createAuthor(authorData))
       }
 
-      cache.authors[id] = author
+      dataCache.authors[id] = author
       return { author }
     } catch (err) {
       return { error: err, author }
@@ -246,7 +246,7 @@ class Database {
         content = data[0]
       }
 
-      cache.contents[id] = content
+      dataCache.contents[id] = content
       return { content, author }
     } catch (err) {
       return { error: err }
@@ -259,8 +259,8 @@ class Database {
       ;({ id, error } = this.getContentId({ content: contentData }))
       if (error) throw error
       if (!id) return {}
-      if (cache.contents?.[id]) {
-        content = cache.contents[id]
+      if (dataCache.contents?.[id]) {
+        content = dataCache.contents[id]
         ;({ author, error } = await this.getAuthor({ url: content?.authorId }))
         if (error) throw error
 
@@ -276,7 +276,7 @@ class Database {
         ;({ author, error } = await this.updateAuthorContentIds(author, id))
       }
 
-      cache.contents[id] = content
+      dataCache.contents[id] = content
       return { content, author }
     } catch (err) {
       return { error: err }
@@ -297,7 +297,7 @@ class Database {
         author = data[0]
       }
 
-      if (author?.id) cache.authors[author.id] = author
+      if (author?.id) dataCache.authors[author.id] = author
       return { author }
     } catch (err) {
       return { error: err, author }
@@ -318,7 +318,7 @@ class Database {
         content = data[0]
       }
 
-      if (content?.id) cache.contents[content.id] = content
+      if (content?.id) dataCache.contents[content.id] = content
       return { content }
     } catch (err) {
       return { error: err, content }
@@ -330,14 +330,16 @@ class Database {
     try {
       ;({ data, error } = await supabase
         .from('userDatas')
-        .update({ summaryIds: [...new Set([...(cache.userData?.summaryIds || []), summaryId])] })
+        .update({
+          summaryIds: [...new Set([...(dataCache.userData?.summaryIds || []), summaryId])],
+        })
         .eq('id', this.user?.id)
         .select())
       if (error) throw error
 
       if (!isEmpty(data)) {
         userData = data[0]
-        cache.userData = userData
+        dataCache.userData = userData
       }
       return { userData }
     } catch (err) {
@@ -371,11 +373,11 @@ class Database {
         summary = data[0]
         ;({ content, error } = await this.updateContentSummaryIds(content, id))
         if (error) throw error
-        ;({ userData, error } = await this.updateUserDataSummaryIds(cache.userData, id))
+        ;({ userData, error } = await this.updateUserDataSummaryIds(dataCache.userData, id))
         if (error) throw error
       }
 
-      cache.summaries[id] = summary
+      dataCache.summaries[id] = summary
       return { userData, summary, content, author }
     } catch (err) {
       return { error: err }
@@ -409,11 +411,11 @@ class Database {
         summary = data[0]
         ;({ content, error } = await this.updateContentSummaryIds(content, id))
         if (error) throw error
-        ;({ userData, error } = await this.updateUserDataSummaryIds(cache.userData, id))
+        ;({ userData, error } = await this.updateUserDataSummaryIds(dataCache.userData, id))
         if (error) throw error
       }
 
-      cache.summaries[id] = summary
+      dataCache.summaries[id] = summary
       return { userData, summary, content, author }
     } catch (err) {
       return { error: err }
@@ -425,7 +427,7 @@ class Database {
     try {
       ;({ id, error } = this.getSummaryId({ content: contentData }))
       if (error) throw error
-      if (!isEmpty(cache.summaries?.[id])) {
+      if (!isEmpty(dataCache.summaries?.[id])) {
         hasSummary = true
 
         return { hasSummary }
@@ -454,7 +456,7 @@ class Database {
           }.bind(this),
         )
         .filter(function (id) {
-          if (!isEmpty(cache.summaries?.[id])) {
+          if (!isEmpty(dataCache.summaries?.[id])) {
             hasSummaries[id] = { hasSummary: true }
             return false
           }
@@ -477,8 +479,8 @@ class Database {
     try {
       ;({ id, error } = this.getSummaryId({ content: contentData }))
       if (error) throw error
-      if (cache.summaries?.[id]) {
-        summary = cache.summaries[id]
+      if (dataCache.summaries?.[id]) {
+        summary = dataCache.summaries[id]
         ;({ content, author, error } = await this.getContent(contentData))
         if (error) throw error
 
@@ -491,7 +493,7 @@ class Database {
         summary = data[0]
         ;({ content, author, error } = await this.getContent(contentData))
       }
-      cache.summaries[id] = summary
+      dataCache.summaries[id] = summary
       return { summary, content, author }
     } catch (err) {
       return { error: err }
@@ -500,15 +502,15 @@ class Database {
 
   async getSummaries() {
     try {
-      if (!cache.userData) await this.getUserData()
-      if (!cache.userData?.summaryIds) return []
+      if (!dataCache.userData) await this.getUserData()
+      if (!dataCache.userData?.summaryIds) return []
       let summaries
       const { data, error } = await supabase
         .from('summaries')
         .select(
           'id,contents(id,url,domain,type,title,authors(id,url,domain,name,imageUrl),authorName,text),title,text,customTags,autoTags,dateCreated,dateModified',
         )
-        .in('id', cache.userData.summaryIds)
+        .in('id', dataCache.userData.summaryIds)
       if (error) throw error
 
       summaries = data
