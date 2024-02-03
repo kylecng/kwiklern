@@ -2,34 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 import Browser from 'webextension-polyfill'
 import Paper from '@mui/material/Paper'
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Autocomplete,
   Button,
   Checkbox,
   Chip,
   FormControlLabel,
-  Stack,
   TextField,
   ThemeProvider,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import theme from '../common/theme'
 import { sendMessageToBackground } from '../../utils'
 import { extractContentData } from '../../extractor/extractContentData'
-import { isArray, isEmpty, isString } from 'bellajs'
-import dayjs from 'dayjs'
+import { isEmpty, isString } from 'bellajs'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { FaStop, FaTimes } from 'react-icons/fa'
 import { StyledIcon } from '../common/Icon'
-import { FaTimesCircle } from 'react-icons/fa'
 import { useExtendedState, usePortal } from '../common/utils/hooks'
-import { devErr, devLog, getErrStr, trySilent } from '../../../utils'
+import { devErr, getErrStr, trySilent } from '../../../utils'
+import { FlexBox, FlexCol, FlexRow } from '../common/Layout'
+// import dayjs from 'dayjs';
 
-export default ({ initialVideosData }) => {
+export default function YoutubePlaylist({ initialVideosData }) {
   const [videosData, setVideosData] = useState(initialVideosData)
   const [customTags, setCustomTags, getCustomTags] = useExtendedState([])
   const [isPlaylistSummarizing, setIsPlaylistSummarizing] = useState(false)
@@ -99,38 +94,34 @@ export default ({ initialVideosData }) => {
       ) : (
         <Paper
           sx={{
-            width: '100%',
-            height: '100%',
+            width: 1,
+            height: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            padding: '10px',
-            marginBottom: '10px',
-            backgroundColor: 'black',
+            padding: 1.25,
+            marginBottom: 1.25,
+            // bgcolor: "black",
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '10px',
+            borderRadius: 2,
             boxSizing: 'border-box',
             '*': {
               boxSizing: 'border-box',
             },
           }}
         >
-          <Box
+          <FlexCol
+            fp
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              // backgroundColor: (theme) => theme.palette.primary.main,
-              padding: '10px',
-              borderRadius: '10px',
-              width: '100%',
-              height: '100%',
-              gap: '5px',
+              // bgcolor: (theme) => theme.palette.primary.main,
+              p: 1.25,
+              br: 1.25,
+              g: 1,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+            <FlexBox jc="end">
               <Typography>kwiklern</Typography>
-            </Box>
+            </FlexBox>
             <SummarizeOptions
               {...{
                 startPlaylistSummarizing,
@@ -139,6 +130,7 @@ export default ({ initialVideosData }) => {
                 setIsUseAutoTags,
                 isOnlySummarizeNew,
                 setIsOnlySummarizeNew,
+                setTriggerPlaylistCleanup,
               }}
             />
             <CustomTags
@@ -159,7 +151,7 @@ export default ({ initialVideosData }) => {
                 />
               )
             })}
-          </Box>
+          </FlexCol>
         </Paper>
       )}
     </ThemeProvider>
@@ -173,29 +165,27 @@ const SummarizeOptions = ({
   setIsUseAutoTags,
   isOnlySummarizeNew,
   setIsOnlySummarizeNew,
+  setTriggerPlaylistCleanup,
 }) => {
   return (
-    <Box
+    <FlexCol
       component="form"
+      fp
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        // backgroundColor: (theme) => theme.palette.primary.main,
-        padding: '10px',
-        borderRadius: '10px',
-        width: '100%',
-        height: '100%',
-        gap: '5px',
+        jc: 'center',
+        // bgcolor: (theme) => theme.palette.primary.main,
+        p: 1.25,
+        br: 2,
+        g: 1,
       }}
     >
       <Box
         sx={{
           display: 'inline-flex',
           alignItems: 'stretch',
-          width: '100%',
-          height: '100%',
-          gap: '5px',
+          width: 1,
+          height: 1,
+          gap: 1,
         }}
       >
         {!isPlaylistSummarizing && (
@@ -204,9 +194,9 @@ const SummarizeOptions = ({
             size="large"
             onClick={() => startPlaylistSummarizing()}
             sx={{
-              width: '100%',
-              // height: '100%',
-              borderRadius: '10px',
+              width: 1,
+              // height: 1,
+              borderRadius: 2,
             }}
           >
             Summarize
@@ -217,7 +207,7 @@ const SummarizeOptions = ({
           <Button
             size="large"
             onClick={() => setTriggerPlaylistCleanup(true)}
-            sx={{ display: 'inline-flex', gap: '5px' }}
+            sx={{ display: 'inline-flex', gap: 0.5 }}
             endIcon={<StyledIcon icon={FaStop} />}
           >
             Stop Summarizing
@@ -225,15 +215,7 @@ const SummarizeOptions = ({
         )}
       </Box>
       {!isPlaylistSummarizing && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            // justifyContent: 'center',
-            // alignItems: 'center',
-            gap: '5px',
-          }}
-        >
+        <FlexCol g={0.5}>
           <FormControlLabel
             control={
               <Checkbox
@@ -252,20 +234,20 @@ const SummarizeOptions = ({
             }
             label={<Typography variant="body2">Only summarize missing videos</Typography>}
           ></FormControlLabel>
-        </Box>
+        </FlexCol>
       )}
-    </Box>
+    </FlexCol>
   )
 }
 
-const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
+const CustomTags = ({ customTags = [], setCustomTags, isPlaylistSummarizing }) => {
   return (
-    <Box>
+    <FlexBox>
       <Typography variant="h4">Custom Tags</Typography>
       <Autocomplete
         freeSolo
         multiple
-        value={customTags || []}
+        value={customTags}
         onChange={(_, tags) => {
           setCustomTags(tags)
         }}
@@ -274,17 +256,18 @@ const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
           <TextField {...params} size="small" placeholder="Add Custom Tags..." />
         )}
         sx={{
-          width: '100%',
-          marginTop: '5px',
-          // '& .MuiInputBase-root': {
-          //   border: '1px solid #303030',
-          //   borderRadius: '20px',
-          //   backgroundColor: '#121212',
+          width: 1,
+          marginTop: 1,
+          // "& .MuiInputBase-root": {
+          //   border: 1,
+          //   borderColor: "#303030",
+          //   borderRadius: 4,
+          //   bgcolor: "#121212",
           // },
         }}
         renderTags={() => {}}
       />
-      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+      <FlexRow ai="center" g={1} flexWrap="wrap">
         {customTags.map((tag, index) => (
           <Chip
             key={`${tag}${index}`}
@@ -297,14 +280,14 @@ const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
             }
           />
         ))}
-      </Stack>
+      </FlexRow>
       {!isPlaylistSummarizing && !isEmpty(customTags) && (
-        <Button sx={{ display: 'inline-flex', gap: '5px' }} onClick={() => setCustomTags([])}>
+        <Button sx={{ display: 'inline-flex', gap: 0.5 }} onClick={() => setCustomTags([])}>
           <StyledIcon icon={FaTimes} />
           Clear all
         </Button>
       )}
-    </Box>
+    </FlexBox>
   )
 }
 
@@ -385,7 +368,7 @@ const PlaylistVideo = ({
       })
       const port = Browser.runtime.connect()
       portRef.current = port
-      const dateCreated = dayjs().toISOString()
+      // const dateCreated = dayjs().toISOString();
       const listener = (msg) => {
         if (msg.status === 'ANSWER') {
           setIsSummarizing(true)
@@ -423,21 +406,21 @@ const PlaylistVideo = ({
 
   return (
     <Portal>
-      <Stack
+      <FlexRow
         direction="row"
-        justifyContent="start"
-        alignItems="center"
-        gap="5px"
+        jc="start"
+        i="center"
+        g={1}
         sx={{
-          padding: '10px',
-          maxWidth: '50%',
-          height: '100%',
+          p: 1.25,
+          maxw: '50%',
+          h: 1,
         }}
       >
         {errorText ? (
           <Typography variant="body2">{JSON.stringify(errorText)}</Typography>
         ) : isLoadingStoredSummaries ? (
-          <Box sx={{ display: 'inline-flex', gap: '5px' }}>
+          <Box sx={{ display: 'inline-flex', gap: 0.5 }}>
             <CircularProgress size="1.5rem" />
             <Typography variant="body2">Loading summary</Typography>
           </Box>
@@ -451,9 +434,11 @@ const PlaylistVideo = ({
                   action: 'OPEN_MAIN_PAGE',
                 })
               }
-              sx={{
-                fontSize: '12px',
-              }}
+              sx={
+                {
+                  // fontSize: "12px",
+                }
+              }
             >
               View Summary
             </Button>
@@ -470,7 +455,7 @@ const PlaylistVideo = ({
             size="large"
             sx={{
               // display: 'inline-flex',
-              // gap: '5px',
+              // gap: 0.5,
               // justifyContent: 'center',
               // alignItems: 'center',
               // fontSize: '12px',
@@ -478,14 +463,14 @@ const PlaylistVideo = ({
                 theme.transitions.create(['color', 'transform'], {
                   duration: theme.transitions.duration.standard,
                 }),
-              '&:hover': { backgroundColor: 'transparent', color: 'red' },
+              '&:hover': { bgcolor: 'transparent', color: 'red' },
             }}
             onClick={cleanup}
           >
             <StyledIcon icon={FaStop} />
           </Button>
         )}
-      </Stack>
+      </FlexRow>
     </Portal>
   )
 }

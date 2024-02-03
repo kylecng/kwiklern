@@ -5,23 +5,30 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import Checkbox from '@mui/material/Checkbox'
-import Typography from '@mui/material/Typography'
-import { FaTrash } from 'react-icons/fa'
+import { BsFillTrash3Fill } from 'react-icons/bs'
 import { linearGradient } from '../../common/utils/color'
 import { CONTENT_TYPE_ENUM } from '../../common/utils/constants'
 import { AiFillCalendar } from 'react-icons/ai'
 import { StyledIcon } from '../../common/Icon'
-import { Button, Chip, Divider, Grid, Link, Stack } from '@mui/material'
+import { Button, Link, MenuItem, Typography } from '@mui/material'
 import { PiListBulletsBold } from 'react-icons/pi'
 import EnhancedTableHead from './EnhancedTableHead'
 import EnhancedTableRow from './EnhancedTableRow'
 import EnhancedTableFilter from './Filter/EnhancedTableFilter'
-import { processTokenizedDataRow, searchCache } from './Filter/SearchHandler'
 import CircularProgress from '@mui/material/CircularProgress'
-import { useDidMount } from '../../common/utils/hooks'
-import { devErr, devLog } from '../../../../utils'
+import { devErr } from '../../../../utils'
 import { sendMessageToBackground } from '../../../utils'
-const selectedTableId = 0
+import { FlexBox, FlexCol, FlexRow } from '../../common/Layout'
+import { RiSettings3Fill } from 'react-icons/ri'
+import { useNavigate } from 'react-router-dom'
+import { useDidMount } from '../../common/utils/hooks'
+import { processTokenizedData } from './Filter/SearchHandler'
+import { entries, fromPairs, values, zip } from 'lodash'
+import Markdown from 'react-markdown'
+import Mark from 'mark.js'
+
+// const selectedTableId = 0;
+// import { useDidMount } from '../../common/utils/hooks';
 
 const descendingComparator = (a, b, orderBy) => {
   if (b[orderBy] < a[orderBy]) {
@@ -55,16 +62,14 @@ const stableSort = (array, comparator) => {
   return stabilizedThis.map((el) => el[0])
 }
 
-const EnhancedTable = (props) => {
-  const { selectedTableId } = props
+export default function EnhancedTable() {
+  // const { selectedTableId } = props;
   const isFirstRender = useDidMount()
   const [rows, setRows] = useState([])
-  const [includedColumns, setIncludedColumns] = useState([
-    'checkbox',
-    'metadata',
-    'summaryText',
-    'actions',
-  ])
+  const [
+    includedColumns,
+    // setIncludedColumns
+  ] = useState(['checkbox', 'metadata', 'summaryText', 'actions'])
   const [isLoading, setIsLoading] = useState(true)
   const [customTagsOptions, setCustomTagsOptions] = useState([])
   const [autoTagsOptions, setAutoTagsOptions] = useState([])
@@ -88,22 +93,6 @@ const EnhancedTable = (props) => {
       ) {
         return false
       }
-
-      if (
-        selectedAutoTags?.length > 0 &&
-        selectedAutoTags.every((autoTag) => !row?.autoTags?.includes(autoTag))
-      ) {
-        return false
-      }
-
-      if (selectedAuthors?.length > 0 && !selectedAuthors.includes(row?.author?.id)) {
-        return false
-      }
-
-      if (selectedTypes?.length > 0 && !selectedTypes.includes(row?.type)) {
-        return false
-      }
-
       return true
     })
     setFilteredRows(newFilteredRows)
@@ -118,6 +107,8 @@ const EnhancedTable = (props) => {
     [filteredRows, order, orderBy, page, rowsPerPage],
   )
 
+  useEffect(() => document?.querySelector('#table-container')?.scrollTo(0, 0), [visibleRows])
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
@@ -130,44 +121,38 @@ const EnhancedTable = (props) => {
           const newCustomTagsOptions = new Set()
           const newAutoTagsOptions = new Set()
           const newAuthorsOptions = {}
-          const newRows = summaries.map((row) => {
+          const newRows = summaries.map((row = {}) => {
             const {
               id,
-              contents: content,
+              contents: content = {},
               title: summaryTitle,
               text: summaryText,
-              customTags,
-              autoTags,
+              customTags = [],
+              autoTags = [],
               dateCreated,
               dateModified,
-            } = row || {}
+            } = row
             const {
-              id: contentId,
+              // id: contentId,
               url,
               domain,
-              type,
+              type: contentType,
               title: contentTitle,
-              authors: author,
+              authors: author = {},
               authorName,
               text: contentText,
-            } = content || {}
-            const {
-              id: authorId,
-              url: authorUrl,
-              domain: authorDomain,
-              name,
-              imageUrl,
-            } = author || {}
+            } = content
+            const { id: authorId, url: authorUrl, domain: authorDomain, name, imageUrl } = author
 
-            ;(customTags || []).forEach((customTag) => newCustomTagsOptions.add(customTag))
-            ;(autoTags || []).forEach((autoTag) => newAutoTagsOptions.add(autoTag))
+            customTags.forEach((customTag) => newCustomTagsOptions.add(customTag))
+            autoTags.forEach((autoTag) => newAutoTagsOptions.add(autoTag))
             newAuthorsOptions[authorId] = author
 
             return {
               id,
               url,
               domain,
-              type,
+              contentType,
               title: summaryTitle || contentTitle || '',
               author: {
                 id: authorId,
@@ -205,31 +190,20 @@ const EnhancedTable = (props) => {
   // }, [rows])
 
   const getDefaultHeaderCell = (value, icon) => (
-    <Stack direction="row" justifyContent="center" alignItems="center" gap={1}>
+    <FlexRow g={1}>
       {icon && <StyledIcon icon={icon} />}
-      <Box
-        sx={{
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        {value}
-      </Box>
-    </Stack>
+      <FlexBox>{value}</FlexBox>
+    </FlexRow>
   )
 
-  const getDefaultDataCell = (value) => (
-    <Box sx={{ justifyContent: 'start', alignItems: 'center', gap: '0.42rem' }}>
-      <Box
-        sx={{
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        {value}
-      </Box>
-    </Box>
-  )
+  // const getDefaultDataCell = (value) => (
+  //   <FlexBox jc="start" g={0.8}>
+  //     <FlexBox
+  //     >
+  //       {value}
+  //     </FlexBox>
+  //   </FlexBox>
+  // );
 
   const columns = () =>
     [
@@ -259,120 +233,104 @@ const EnhancedTable = (props) => {
         cellProps: {
           align: 'center',
         },
+        headerCellProps: { sx: { width: 0.3 } },
         getHeaderCell: () => getDefaultHeaderCell('Source'),
-        getDataCell: ({ type, title, url, author, customTags, autoTags, dateCreated }) => (
-          <Stack
-            sx={{
-              fontSize: '20px',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center',
-              verticalAlign: 'middle',
-              gap: '10px',
-            }}
-          >
-            {type && (
-              <StyledIcon
-                icon={CONTENT_TYPE_ENUM[type].icon}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  url && window?.open(url)
-                }}
-              />
-            )}
-            <Box>
-              <Link
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={
-                  {
-                    // whiteSpace: "nowrap"
-                  }
+        getDataCell: ({ contentType, title, url, author, customTags, autoTags }) => {
+          const renderTags = (tags = [], selectedTags, setSelectedTags) => (
+            <FlexRow sx={{ rowGap: 0.5, columnGap: 1, flexWrap: 'wrap' }}>
+              {[...tags].map((tag, index) => (
+                <FlexRow
+                  key={`${tag}${index}`}
+                  // label={tag}
+                  sx={{
+                    '&:hover': { color: (theme) => theme.palette.primary.main },
+                    p: 1,
+                    b: 1,
+                    br: 3,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    addTag(tag, selectedTags, setSelectedTags)
+                  }}
+                >
+                  {tag}
+                </FlexRow>
+              ))}
+            </FlexRow>
+          )
+
+          return (
+            <FlexCol
+              g={1.25}
+              sx={
+                {
+                  // fontSize: '20px',
                 }
-                onClick={(e) => e.stopPropagation()}
-              >
-                {title}
-              </Link>
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                verticalAlign: 'middle',
-              }}
+              }
             >
-              <Box
-                component="img"
-                referrerPolicy="no-referrer"
-                sx={{
-                  objectFit: 'cover',
-                  width: '25px',
-                  borderRadius: '50% 50%',
-                  marginRight: '5px',
-                }}
-                src={author?.imageUrl}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  author?.url && window?.open(author.url)
-                }}
-              />
-              <Link
-                href={author?.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  // whiteSpace: "nowrap"
-                  fontSize: '14px',
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {author?.name}
-              </Link>
-            </Box>
-            <Stack
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ rowGap: '0px', columnGap: '2px', flexWrap: 'wrap' }}
-            >
-              {[...(customTags || [])].map((customTag, index) => (
-                <Chip
-                  key={`${customTag}${index}`}
-                  label={customTag}
-                  sx={{ '&:hover': { color: (theme) => theme.palette.primary.main } }}
+              {contentType && (
+                <StyledIcon
+                  icon={CONTENT_TYPE_ENUM[contentType].icon}
                   onClick={(e) => {
                     e.stopPropagation()
-                    addTag(customTag, selectedCustomTags, setSelectedCustomTags)
+                    url && window?.open(url)
                   }}
-                ></Chip>
-              ))}
-            </Stack>
-            <Stack
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ rowGap: '0px', columnGap: '2px', flexWrap: 'wrap' }}
-            >
-              {[...(autoTags || [])].map((autoTag, index) => (
-                <Chip
-                  key={`${autoTag}${index}`}
-                  label={autoTag}
-                  sx={{ '&:hover': { color: (theme) => theme.palette.primary.main } }}
+                />
+              )}
+              <FlexBox>
+                <Link
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    // whiteSpace: "nowrap"
+                    fontSize: '1.5rem',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {title}
+                </Link>
+              </FlexBox>
+              <FlexBox>
+                <Box
+                  component="img"
+                  referrerPolicy="no-referrer"
+                  sx={{
+                    objectFit: 'cover',
+                    width: '1.5rem',
+                    borderRadius: '50% 50%',
+                    marginRight: 0.25,
+                  }}
+                  src={author?.imageUrl}
                   onClick={(e) => {
                     e.stopPropagation()
-                    addTag(autoTag, selectedAutoTags, setSelectedAutoTags)
+                    author?.url && window?.open(author.url)
                   }}
-                ></Chip>
-              ))}
-            </Stack>
-          </Stack>
-        ),
+                />
+                <Link
+                  href={author?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={
+                    {
+                      // whiteSpace: "nowrap"
+                      // fontSize: '14px',
+                    }
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {author?.name}
+                </Link>
+              </FlexBox>
+              {renderTags(customTags, selectedCustomTags, setSelectedCustomTags)}
+              {renderTags(autoTags, selectedAutoTags, setSelectedAutoTags)}
+            </FlexCol>
+          )
+        },
       },
       {
         id: 'summaryText',
+        headerCellProps: { sx: { width: 0.6 } },
         getHeaderCell: () => getDefaultHeaderCell('Summary', PiListBulletsBold),
         getDataCell: ({ summaryText }) => (
           <Typography sx={{ whiteSpace: 'pre-line' }}>{summaryText}</Typography>
@@ -382,24 +340,27 @@ const EnhancedTable = (props) => {
         id: 'dateCreated',
         getHeaderCell: () => getDefaultHeaderCell('Date Created', AiFillCalendar),
         getDataCell: ({ dateCreated }) => (
-          <Box>
+          <FlexBox>
             {new Date(dateCreated).toLocaleDateString('en-US', {
               year: '2-digit',
               month: '2-digit',
               day: '2-digit',
             })}
-          </Box>
+          </FlexBox>
         ),
       },
       {
         id: 'actions',
         getHeaderCell: () => {},
         getDataCell: () => (
-          <Box sx={{ gap: '0.174rem' }}>
+          <FlexBox sx={{ g: 0.25 }}>
             <Button onClick={(e) => e.stopPropagation()}>
-              <StyledIcon icon={FaTrash} sx={{ color: (theme) => theme.palette.error.main }} />
+              <StyledIcon
+                icon={BsFillTrash3Fill}
+                sx={{ color: (theme) => theme.palette.error.main }}
+              />
             </Button>
-          </Box>
+          </FlexBox>
         ),
       },
     ].filter((col) => includedColumns.includes(col.id))
@@ -462,99 +423,96 @@ const EnhancedTable = (props) => {
   //   setSelectedTags(selectedTags.filter((t) => t !== tag));
   // };
 
-  return isLoading ? (
-    <CircularProgress />
-  ) : (
-    <Grid
-      container
-      spacing={2}
-      sx={{
-        padding: '15px',
-        //  overflow: "hidden",
-        height: '100%',
-      }}
-    >
-      <Grid item xs={2}>
-        <EnhancedTableFilter
-          customTagsOptions={customTagsOptions}
-          selectedCustomTags={selectedCustomTags}
-          onCustomTagsChange={setSelectedCustomTags}
-          autoTagsOptions={autoTagsOptions}
-          selectedAutoTags={selectedAutoTags}
-          onAutoTagsChange={setSelectedAutoTags}
-          authorsOptions={authorsOptions}
-          selectedAuthors={selectedAuthors}
-          onAuthorsChange={setSelectedAuthors}
-          selectedTypes={selectedTypes}
-          onTypesChange={setSelectedTypes}
-        />
-      </Grid>
-      <Grid item xs={10} sx={{ height: '100%' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '5px', height: '100%' }}>
-          <TableContainer>
-            <Table aria-labelledby="tableTitle" size={'small'}>
-              <EnhancedTableHead
-                columns={columns}
-                numSelected={selectedRows.length}
-                order={order}
-                orderBy={orderBy}
-                onSelectAllClick={handleSelectAllClick}
-                onRequestSort={handleRequestSort}
-                rowCount={filteredRows.length}
-                count={filteredRows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-              <TableBody>
-                {visibleRows.map((row, index) => {
-                  const isItemSelected = isSelected(row?.id)
+  return (
+    <FlexCol fp g={2.5} p={3} sx={{ overflow: 'hidden' }}>
+      {' '}
+      {isLoading ? (
+        <FlexBox fw f={1}>
+          <CircularProgress />
+        </FlexBox>
+      ) : (
+        <FlexRow fw f={1} minh={0} pos="relative" g={3}>
+          <FlexCol w={0.2} jc="start" fh pos="relative">
+            <EnhancedTableFilter
+              customTagsOptions={customTagsOptions}
+              selectedCustomTags={selectedCustomTags}
+              onCustomTagsChange={setSelectedCustomTags}
+              autoTagsOptions={autoTagsOptions}
+              selectedAutoTags={selectedAutoTags}
+              onAutoTagsChange={setSelectedAutoTags}
+              authorsOptions={authorsOptions}
+              selectedAuthors={selectedAuthors}
+              onAuthorsChange={setSelectedAuthors}
+              selectedTypes={selectedTypes}
+              onTypesChange={setSelectedTypes}
+            />
+          </FlexCol>
+          <FlexBox fh f={1} jc="start" pos="relative">
+            <FlexCol fh g={0.5}>
+              <TableContainer id="table-container">
+                <Table aria-labelledby="tableTitle" size={'small'}>
+                  <EnhancedTableHead
+                    columns={columns}
+                    numSelected={selectedRows.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={filteredRows.length}
+                    count={filteredRows.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                  />
+                  <TableBody id="table-body">
+                    {visibleRows.map((row) => {
+                      const isItemSelected = isSelected(row?.id)
 
-                  return (
-                    <EnhancedTableRow
-                      hover
-                      onClick={(event) => handleClick(event, row?.id)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row?.id}
-                      selected={isItemSelected}
-                      sx={{
-                        cursor: 'pointer',
-                        '&.Mui-selected': {
-                          backgroundColor: 'transparent',
-                          backgroundImage: (theme) =>
-                            linearGradient(
-                              'to right',
-                              'transparent 1%',
-                              `${theme.palette.secondary.main} 15%`,
-                              `${theme.palette.primary.main} 85%`,
-                              'transparent 99%',
-                            ),
-                        },
-                      }}
-                    >
-                      {columns().map(({ id, getDataCell, cellProps, dataCellProps }) => (
-                        <TableCell key={id} align="left" {...cellProps} {...dataCellProps}>
-                          {getDataCell(row)}
-                        </TableCell>
-                      ))}
-                    </EnhancedTableRow>
-                  )
-                })}
-                {emptyRows > 0 && (
-                  <EnhancedTableRow>
-                    <TableCell colSpan={6} />
-                  </EnhancedTableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      </Grid>
-    </Grid>
+                      return (
+                        <EnhancedTableRow
+                          hover
+                          onClick={(event) => handleClick(event, row?.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={row?.id}
+                          selected={isItemSelected}
+                          sx={{
+                            cursor: 'pointer',
+                            '&.Mui-selected': {
+                              bgcolor: 'transparent',
+                              backgroundImage: (theme) =>
+                                linearGradient(
+                                  'to right',
+                                  'transparent 1%',
+                                  `${theme.palette.secondary.main} 15%`,
+                                  `${theme.palette.primary.main} 85%`,
+                                  'transparent 99%',
+                                ),
+                            },
+                          }}
+                        >
+                          {columns().map(({ id, getDataCell, cellProps, dataCellProps }) => (
+                            <TableCell key={id} align="left" {...cellProps} {...dataCellProps}>
+                              {getDataCell(row)}
+                            </TableCell>
+                          ))}
+                        </EnhancedTableRow>
+                      )
+                    })}
+                    {emptyRows > 0 && (
+                      <EnhancedTableRow>
+                        <TableCell colSpan={6} />
+                      </EnhancedTableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </FlexCol>
+          </FlexBox>
+        </FlexRow>
+      )}
+    </FlexCol>
   )
 }
-
-export default EnhancedTable

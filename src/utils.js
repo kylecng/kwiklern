@@ -22,13 +22,25 @@ export const trySilent = (func) => {
   try {
     func()
     return true
-  } catch {}
+  } catch {
+    /* empty */
+  }
 }
 
 export const tryReturn = (func) => {
   try {
     return func()
-  } catch {}
+  } catch {
+    /* empty */
+  }
+}
+
+export const tryCatchDev = (func) => {
+  try {
+    return func()
+  } catch (err) {
+    devErr(err)
+  }
 }
 
 export const devLog = (...args) => {

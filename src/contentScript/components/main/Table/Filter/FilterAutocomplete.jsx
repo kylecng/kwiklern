@@ -1,6 +1,6 @@
 import { Autocomplete, TextField } from '@mui/material'
 
-const FilterAutocomplete = (props) => {
+export default function FilterAutocomplete(props) {
   const {
     sx,
     options,
@@ -16,12 +16,13 @@ const FilterAutocomplete = (props) => {
   return (
     <Autocomplete
       sx={{
-        width: '100%',
-        '& .MuiInputBase-root': {
-          border: '1px solid #303030',
-          borderRadius: '20px',
-          backgroundColor: '#121212',
-        },
+        width: 1,
+        // "& .MuiInputBase-root": {
+        //   border: 1,
+        //   borderColor: "#303030",
+        //   borderRadius: 4,
+        //   bgcolor: "#121212",
+        // },
         ...sx,
       }}
       multiple
@@ -40,5 +41,3 @@ const FilterAutocomplete = (props) => {
     />
   )
 }
-
-export default FilterAutocomplete

@@ -21,7 +21,7 @@ export async function getLangOptionsFromHtml(pageHtml) {
   languageOptions.sort(function (x, y) {
     return x == first ? -1 : y == first ? 1 : 0
   })
-  const langOptions = Array.from(languageOptions).map((langName, index) => {
+  const langOptions = Array.from(languageOptions).map((langName) => {
     const link = captionTracks.find((i) => i.name.simpleText === langName).baseUrl
     return {
       language: langName,

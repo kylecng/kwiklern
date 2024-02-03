@@ -2,6 +2,7 @@
 
 import { DOMParser } from 'linkedom'
 import extractLdSchema from './extractLdSchema.js'
+import { entries } from 'lodash'
 
 /**
  * @param {Element} node
@@ -17,7 +18,7 @@ function getMetaContentByNameOrProperty(node, attributeLists) {
 
   const name = node.getAttribute('name')?.toLowerCase()
 
-  for (const [key, attrs] of Object.entries(attributeLists)) {
+  for (const [key, attrs] of entries(attributeLists)) {
     if (attrs.includes(property) || attrs.includes(name)) {
       return { key, content }
     }

@@ -1,13 +1,14 @@
 import { StrictMode, useEffect, useState } from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import theme from '../common/theme'
 import Login from './Login'
 import Table from './Table/EnhancedTable'
 import { ThemeProvider } from '@mui/material/styles'
-import { Box, CircularProgress, Typography } from '@mui/material'
-import './index.css'
+import { CircularProgress, Typography } from '@mui/material'
 import { sendMessageToBackground } from '../../utils'
+import './index.css'
+import { FlexBox, FlexRow } from '../common/Layout'
 
 const RequireAuth = ({ children }) => {
   let location = useLocation()
@@ -17,20 +18,20 @@ const RequireAuth = ({ children }) => {
 
   useEffect(() => {
     sendMessageToBackground({ action: 'getSession', type: 'DATABASE' })
-      .then(({ session, user, error }) => {
+      .then(({ session, error }) => {
         if (error) throw error
         setIsAuth(session?.access_token)
       })
-      .catch((error) => setIsAuth(false))
+      .catch(() => setIsAuth(false))
       .finally(() => setIsLoadingAuth(false))
   }, [])
 
   if (isLoadingAuth) {
     return (
-      <Box>
+      <FlexBox>
         <CircularProgress />
         <Typography>Loading session</Typography>
-      </Box>
+      </FlexBox>
     )
   } else if (!isAuth) {
     return <Navigate to="/login" state={{ from: location }} />
@@ -42,16 +43,12 @@ const RequireAuth = ({ children }) => {
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
-      <Box
+      <FlexRow
         sx={{
-          display: 'flex',
-          flexDirection: 'horizontal',
-          width: '100vw',
-          height: '100vh',
-          justifyContent: 'center',
-          alignItems: 'center',
+          w: '100vw',
+          h: '100vh',
           overflow: 'hidden',
-          backgroundColor: (theme) => theme.palette.background.default,
+          bgcolor: (theme) => theme.palette.background.default,
           '*': {
             boxSizing: 'border-box',
           },
@@ -70,14 +67,14 @@ const App = () => {
             />
           </Routes>
         </Router>
-      </Box>
+      </FlexRow>
     </ThemeProvider>
   )
 }
 
 // export default App
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,

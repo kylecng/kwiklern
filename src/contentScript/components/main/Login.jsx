@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { devLog } from '../../../utils'
 import { sendMessageToBackground } from '../../utils'
 
-const Login = () => {
+export default function Login() {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
     sendMessageToBackground({
       action: 'getSession',
       type: 'DATABASE',
-    }).then(({ user, session, error }) => {
+    }).then(({ session }) => {
       setSession(session)
     })
   }, [])
@@ -21,5 +20,3 @@ const Login = () => {
 
   return <div>LOGIN</div>
 }
-
-export default Login

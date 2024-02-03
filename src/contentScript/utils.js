@@ -1,6 +1,5 @@
-import { isEmpty } from 'bellajs'
 import Browser from 'webextension-polyfill'
-import { devErr, devLog, getErrStr } from '../utils'
+import { devErr, devLog } from '../utils'
 
 export async function sendMessageToBackground(message, timeout) {
   const messagePromise = (async () => {
@@ -32,7 +31,7 @@ export function waitForElm(selector) {
       return resolve(document.querySelector(selector))
     }
 
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver(() => {
       if (document.querySelector(selector)) {
         resolve(document.querySelector(selector))
         observer.disconnect()

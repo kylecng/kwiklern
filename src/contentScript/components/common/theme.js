@@ -1,82 +1,127 @@
 import { createTheme } from '@mui/material/styles'
+import { merge, fromPairs, clone } from 'lodash'
+import 'typeface-inter'
+import 'typeface-oswald'
 
 // define color palette
-const themePalette = createTheme({
+let theme = createTheme({
   palette: {
-    type: 'dark',
+    mode: 'dark',
     primary: {
-      main: '#cc0000',
+      main: '#25EBE6',
+      contrastText: '#000000',
     },
     secondary: {
-      main: '#f50057',
+      main: '#625BF6',
+      contrastText: '#ffffff',
     },
     text: {
-      primary: '#ffffff',
-      secondary: '#ffffff',
+      // primary: "#EAEAEA",
+      // primary: "#B0ADA9",
+      primary: '#FFFFFF',
+      secondary: '#7C7A7B',
     },
     background: {
-      default: '#0b0c0d',
-      paper: '#2c2c2c',
+      // default: "#191919",
+      default: '#1C232B',
+      paper: '#2F2F2F',
+    },
+    warning: {
+      // main: "#3F3600",
+      // main: "#E0BF6A",
+      main: '#9E810B',
+      dark: '#3F3600',
+      // dark: "#9E810B",
     },
   },
 })
 
+const fontDefault = { fontFamily: 'Inter, sans-serif', color: theme.palette.text.primary }
+
 // define default styles
-const theme = createTheme(themePalette, {
-  typography: {
-    fontFamily: 'Cabin',
-    fontSize: '14px',
-    button: {
-      textTransform: 'none',
-    },
-    body1: {
-      fontSize: '14px',
-      color: themePalette.palette.text.primary,
-    },
-    body2: {
-      fontSize: '12px',
-      color: themePalette.palette.text.primary,
-    },
+theme = createTheme(theme, {
+  spacing: (factor) => `${factor * 0.5}rem`,
+  shape: {
+    borderRadius: 5,
   },
+  typography: merge(
+    {
+      ...clone(fontDefault),
+      ...fromPairs(
+        [
+          'root',
+          'allVariants',
+          'body1',
+          'body2',
+          'button',
+          'caption',
+          'h1',
+          'h2',
+          'h3',
+          'h4',
+          'h5',
+          'h6',
+          'inherit',
+          'overline',
+          'subtitle1',
+          'subtitle2',
+        ].map((variant) => [variant, clone(fontDefault)]),
+      ),
+    },
+    {
+      fontSize: '1.25rem',
+      root: {
+        fontSize: '1.25rem',
+      },
+      allVariants: {
+        textTransform: 'none',
+      },
+      button: {
+        textTransform: 'none',
+      },
+      body1: {
+        fontSize: '1.5rem',
+      },
+      body2: {
+        fontSize: '1rem',
+      },
+    },
+  ),
   components: {
     MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          boxSizing: 'border-box',
-          scrollbarColor: '#6b6b6b #2b2b2b',
-          '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
-            backgroundColor: '#2b2b2b',
-          },
-          '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
-            borderRadius: 8,
-            backgroundColor: '#6b6b6b',
-            minHeight: 24,
-            border: '3px solid #2b2b2b',
-          },
-          '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
-            backgroundColor: '#959595',
-          },
-          '&::-webkit-scrollbar-thumb:active, & *::-webkit-scrollbar-thumb:active': {
-            backgroundColor: '#959595',
-          },
-          '&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#959595',
-          },
-          '&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner': {
-            backgroundColor: '#2b2b2b',
-          },
-        },
-      },
+      // styleOverrides: () => `* {
+      //   font-family: Inter, sans-serif;
+      // }`,
+      // styleOverrides: {
+      //   body: {
+      //     boxSizing: "border-box",
+      //     // scrollbarColor: "#6b6b6b #2b2b2b",
+      //     "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+      //       backgroundColor: theme.palette.background.paper,
+      //       borderRadius: 10,
+      //       width: "0.7em",
+      //     },
+      //     "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+      //       borderRadius: 10,
+      //       backgroundColor: theme.palette.primary.main,
+      //       minHeight: 24,
+      //       border: `0.2em solid ${theme.palette.background.paper}`,
+      //     },
+      //     "& *::-webkit-scrollbar-corner": {
+      //       backgroundColor: "transparent",
+      //     },
+      //   },
+      // },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          fontSize: '14px',
-          padding: '5px',
-          color: themePalette.palette.text.primary,
+          fontSize: '1.5rem',
+          padding: '0.25rem',
+          color: theme.palette.text.primary,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
-          minWidth: '0px',
+          minWidth: 0,
         },
       },
     },
@@ -89,13 +134,13 @@ const theme = createTheme(themePalette, {
     },
     MuiIconButton: {
       styleOverrides: {
-        root: { color: themePalette.palette.text.primary },
+        root: { color: theme.palette.text.primary },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          fontSize: '12px',
+          fontSize: '0.75rem',
         },
         label: {
           overflow: 'hidden',
@@ -105,35 +150,43 @@ const theme = createTheme(themePalette, {
     MuiCheckbox: {
       styleOverrides: {
         root: {
-          paddingTop: '0px',
-          paddingBottom: '0px',
+          paddingTop: 0,
+          paddingBottom: 0,
         },
       },
     },
     MuiAccordion: {
       styleOverrides: {
         root: {
-          padding: '5px 10px',
+          padding: '0.25rem 0.5rem',
         },
       },
     },
     MuiAccordionSummary: {
       styleOverrides: {
         root: {
-          padding: '0px',
+          padding: 0,
         },
         content: {
-          marginTop: '5px',
-          marginBottom: '5px',
+          marginTop: '0.25rem',
+          marginBottom: '0.25rem',
         },
       },
     },
     MuiAccordionDetails: {
       styleOverrides: {
         root: {
-          padding: '0px',
+          padding: 0,
         },
       },
+    },
+  },
+  MuiInputBase: {
+    styleOverrides: {
+      border: 1,
+      borderColor: '#303030',
+      borderRadius: 10,
+      bgcolor: '#121212',
     },
   },
 })

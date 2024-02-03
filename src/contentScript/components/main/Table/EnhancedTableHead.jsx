@@ -1,25 +1,19 @@
-import * as React from 'react'
-import PropTypes from 'prop-types'
 import Box from '@mui/material/Box'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableSortLabel from '@mui/material/TableSortLabel'
-import Checkbox from '@mui/material/Checkbox'
 import { visuallyHidden } from '@mui/utils'
 import { useTheme } from '@mui/material/styles'
 import EnhancedTableRow from './EnhancedTableRow'
 import { TablePagination } from '@mui/material'
 
-const EnhancedTableHead = (props) => {
+export default function EnhancedTableHead(props) {
   const theme = useTheme()
   const {
     sx,
     columns,
-    onSelectAllClick,
     order,
     orderBy,
-    numSelected,
-    rowCount,
     onRequestSort,
     count,
     rowsPerPage,
@@ -38,12 +32,12 @@ const EnhancedTableHead = (props) => {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        backgroundColor: (theme) => theme.palette.background.default,
+        bgcolor: (theme) => theme.palette.background.default,
         ...sx,
       }}
     >
       <EnhancedTableRow>
-        <TableCell colSpan={columns().length} sx={{ border: '0px' }}>
+        <TableCell colSpan={columns().length} sx={{ border: 0 }}>
           <TablePagination
             component="div"
             rowsPerPageOptions={[5, 10, 25]}
@@ -56,15 +50,6 @@ const EnhancedTableHead = (props) => {
         </TableCell>
       </EnhancedTableRow>
       <EnhancedTableRow>
-        {/* <TableCell padding="checkbox">
-          <Checkbox
-            color="primary"
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{}}
-          />
-        </TableCell> */}
         {columns(theme).map(({ id, getHeaderCell, cellProps, headerCellProps, isSortable }) => (
           <TableCell
             key={id}
@@ -94,20 +79,3 @@ const EnhancedTableHead = (props) => {
     </TableHead>
   )
 }
-
-EnhancedTableHead.propTypes = {
-  columns: PropTypes.func.isRequired,
-  numSelected: PropTypes.number.isRequired,
-  onRequestSort: PropTypes.func.isRequired,
-  onSelectAllClick: PropTypes.func.isRequired,
-  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-  orderBy: PropTypes.string.isRequired,
-  rowCount: PropTypes.number.isRequired,
-  count: PropTypes.number.isRequired,
-  rowsPerPage: PropTypes.number.isRequired,
-  page: PropTypes.number.isRequired,
-  onPageChange: PropTypes.func.isRequired,
-  onRowsPerPageChange: PropTypes.func.isRequired,
-}
-
-export default EnhancedTableHead

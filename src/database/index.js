@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { supabaseUrl, supabaseKey } from '../secrets/secrets.supabase'
 import { dataCache } from './dataCache'
-import { devErr, devLog } from '../utils'
+import { keys } from 'lodash'
 
 const isEmpty = (data) => {
   if (!data) return true
@@ -10,7 +10,7 @@ const isEmpty = (data) => {
   }
 
   if (typeof data === 'object' && data !== null) {
-    return Object.keys(data).length === 0
+    return keys(data).length === 0
   }
 
   return false
@@ -155,7 +155,6 @@ class Database {
       if (!isEmpty(data)) {
         userData = data[0]
         dataCache.userData = userData
-      } else {
       }
       return { userData }
     } catch (err) {

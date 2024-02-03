@@ -1,6 +1,7 @@
 // config.js
 
 import { clone } from 'bellajs'
+import { keys } from 'lodash'
 
 const sanitizeHtmlOptions = {
   allowedTags: [
@@ -103,7 +104,7 @@ export const getSanitizeHtmlOptions = () => {
 }
 
 export const setSanitizeHtmlOptions = (opts = {}) => {
-  Object.keys(opts).forEach((key) => {
+  keys(opts).forEach((key) => {
     sanitizeHtmlOptions[key] = clone(opts[key])
   })
 }

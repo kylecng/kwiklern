@@ -8,8 +8,6 @@ import {
   Autocomplete,
   Button,
   Chip,
-  IconButton,
-  Stack,
   TextField,
   ThemeProvider,
   Typography,
@@ -17,120 +15,128 @@ import {
 import theme from '../common/theme'
 import { sendMessageToBackground } from '../../utils'
 import { extractContentData } from '../../extractor/extractContentData'
-import { isArray, isEmpty, isString } from 'bellajs'
+import { isEmpty, isString } from 'bellajs'
 import dayjs from 'dayjs'
-import Box from '@mui/material/Box'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import CircularProgress from '@mui/material/CircularProgress'
-import { FaStop, FaEdit, FaSave, FaTimes } from 'react-icons/fa'
+import { FaStop, FaTimes } from 'react-icons/fa'
 import { StyledIcon } from '../common/Icon'
 import { useExtendedState } from '../common/utils/hooks'
 import { formatText } from '../common/utils/format'
-import { devErr, getErrStr } from '../../../utils'
+import { devErr, getErrStr, trySilent } from '../../../utils'
+import { FlexBox, FlexCol, FlexRow, FlexDivider } from '../common/Layout'
+// import { radialGradient } from '../common/utils/color'
 
-const SummarizeButtons = ({ summaryData, startSummarizing, isSummarizing, cleanup }) => {
-  return (
-    <Box
-      component="form"
+const SummarizeButton = ({ buttonText, onClick }) => (
+  <Button
+    variant="contained"
+    size="large"
+    onClick={onClick}
+    sx={{
+      bgcolor: 'primary.main',
+      width: 1,
+      // height: 1,
+      borderRadius: 2,
+    }}
+  >
+    <Typography
+      variant="h6"
       sx={{
-        display: 'flex',
-        alignItems: 'stretch',
-        width: '100%',
-        height: '100%',
-        gap: '5px',
+        color: 'primary.contrastText',
+        // background: radialGradient(`white 50%`, `${theme.palette.primary.main}`),
+        // backgroundClip: 'text',
+        // textFillColor: 'transparent',
+      }}
+    >
+      {buttonText}
+    </Typography>
+  </Button>
+)
+
+const SummarizeButtons = ({ startSummarizing, isSummarizing, cleanup }) => {
+  return (
+    <FlexBox
+      component="form"
+      fp
+      sx={{
+        ai: 'stretch',
+        g: 0.5,
       }}
     >
       {!isSummarizing && (
-        <Button
-          variant="contained"
-          size="large"
+        <SummarizeButton
+          buttonText="Summarize"
           onClick={() => startSummarizing({ isUseAutoTags: false })}
-          sx={{
-            width: '100%',
-            // height: '100%',
-            borderRadius: '10px',
-          }}
-        >
-          Summarize
-        </Button>
+        />
       )}
       {!isSummarizing && (
-        <Button
-          variant="contained"
-          size="large"
+        <SummarizeButton
+          buttonText="Summarize w/ Auto-Tags"
           onClick={() => startSummarizing({ isUseAutoTags: true })}
-          sx={{
-            width: '100%',
-            // height: '100%',
-            borderRadius: '10px',
-          }}
-        >
-          Summarize w/ Auto-Tags
-        </Button>
+        />
       )}
       {isSummarizing && (
-        <Button sx={{ display: 'inline-flex', gap: '5px' }} onClick={cleanup}>
+        <Button sx={{ display: 'inline-flex', gap: 0.5 }} onClick={cleanup}>
           <StyledIcon icon={FaStop} />
           Stop Summarizing
         </Button>
       )}
-    </Box>
+    </FlexBox>
   )
 }
 
 const Tags = ({ tagsType, summaryData, setSummaryData, isSummarizing }) => {
   return (
     !isEmpty(summaryData?.[tagsType]) && (
-      <Box>
-        <Stack
-          direction="row"
-          alignItems="center"
-          sx={{ rowGap: '0px', columnGap: '2px', flexWrap: 'wrap' }}
-        >
-          {summaryData?.[tagsType].map((tag, index) => (
-            <Chip
-              key={`${tag}${index}`}
-              label={tag}
-              sx={{ '&:hover': { color: (theme) => theme.palette.primary.main } }}
-              onDelete={
-                isSummarizing
-                  ? null
-                  : () =>
-                      setSummaryData(({ [tagsType]: prevTags, ...restFields }) => {
-                        return {
-                          ...restFields,
-                          [tagsType]: prevTags.filter((t) => t !== tag),
-                        }
-                      })
-              }
-            />
-          ))}
-        </Stack>
-        {!isSummarizing && (
-          <Button
-            sx={{ display: 'inline-flex', gap: '5px' }}
-            onClick={() =>
-              setSummaryData(({ ...restFields }) => {
-                return {
-                  ...restFields,
-                  [tagsType]: [],
-                }
-              })
+      <FlexRow fw jc="start" sx={{ rowGap: 0, columnGap: 0.25, flexWrap: 'wrap' }}>
+        {summaryData?.[tagsType].map((tag, index) => (
+          <Chip
+            key={`${tag}${index}`}
+            label={tag}
+            sx={{ '&:hover': { color: 'primary.main' } }}
+            onDelete={
+              isSummarizing
+                ? null
+                : () =>
+                    setSummaryData(({ [tagsType]: prevTags, ...restFields }) => {
+                      return {
+                        ...restFields,
+                        [tagsType]: prevTags.filter((t) => t !== tag),
+                      }
+                    })
             }
-          >
-            <StyledIcon icon={FaTimes} />
-            Clear all
-          </Button>
-        )}
-      </Box>
+          />
+        ))}
+      </FlexRow>
     )
   )
 }
 
 const CustomTagSection = ({ summaryData, setSummaryData, isSummarizing, getUpdatedTags }) => {
   return (
-    <Box>
-      <Typography variant="h4">Custom Tags</Typography>
+    <FlexCol fw g={0.5}>
+      <FlexBox fw jc="space-between">
+        <Typography variant="h4" display="inline-flex" sx={{ display: 'inline' }}>
+          Custom Tags
+        </Typography>
+        {!isSummarizing && (
+          <Button
+            onClick={() =>
+              setSummaryData(({ ...restFields }) => {
+                return {
+                  ...restFields,
+                  customTags: [],
+                }
+              })
+            }
+          >
+            <FlexRow>
+              <StyledIcon icon={FaTimes} />
+              <Typography variant="body1">Clear all</Typography>
+            </FlexRow>
+          </Button>
+        )}
+      </FlexBox>
       <Autocomplete
         freeSolo
         multiple
@@ -148,94 +154,108 @@ const CustomTagSection = ({ summaryData, setSummaryData, isSummarizing, getUpdat
           <TextField {...params} size="small" placeholder="Add Custom Tags..." />
         )}
         sx={{
-          width: '100%',
-          marginTop: '5px',
-          '& .MuiInputBase-root': {
-            border: '1px solid #303030',
-            borderRadius: '20px',
-            backgroundColor: '#121212',
-          },
+          width: 1,
+          marginTop: 1,
+          // "& .MuiInputBase-root": {
+          //   border: 1,
+          //   borderColor: "#303030",
+          //   borderRadius: 4,
+          //   bgcolor: "#121212",
+          // },
         }}
         renderTags={() => {}}
       />
+
       <Tags {...{ tagsType: 'customTags', summaryData, setSummaryData, isSummarizing }} />
-    </Box>
+    </FlexCol>
   )
 }
 
 const AutoTagSection = ({ summaryData, setSummaryData, isSummarizing }) => {
   return (
     !isEmpty(summaryData?.autoTags) && (
-      <Box>
+      <FlexBox>
         <Typography variant="h4">Auto-Generated Tags</Typography>
         <Tags {...{ tagsType: 'autoTags', summaryData, setSummaryData, isSummarizing }} />
-      </Box>
+      </FlexBox>
     )
   )
 }
+
+const SectionAccordion = ({ isLoading, title, content, ...restProps }) => {
+  return isLoading ? (
+    <FlexBox>
+      <CircularProgress />
+    </FlexBox>
+  ) : (
+    <FlexBox fw br={2} overflow="hidden">
+      <Accordion
+        disableGutters
+        square={false}
+        sx={{
+          width: 1,
+          bgcolor: 'transparent',
+        }}
+        {...restProps}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h4">{title}</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ width: 1 }}>
+          <FlexCol fw ai="start">
+            <FlexDivider />
+            {content}
+          </FlexCol>
+        </AccordionDetails>
+      </Accordion>
+    </FlexBox>
+  )
+}
+
 const SummarySection = ({
   summaryData,
   isLoadingStoredSummary,
   isSummarySectionExpanded,
   setIsSummarySectionExpanded,
 }) => {
-  return isLoadingStoredSummary ? (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <CircularProgress />
-    </Box>
-  ) : (
-    isString(summaryData?.text) && (
-      <Accordion
-        expanded={isSummarySectionExpanded}
-        onChange={() => setIsSummarySectionExpanded((prevIsExpanded) => !prevIsExpanded)}
-        disableGutters
-        defaultExpanded
-        square={false}
-        sx={{
-          borderRadius: '10px',
-        }}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Summary</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body" component="div" sx={{ whiteSpace: 'pre-line' }}>
+  return (
+    <SectionAccordion
+      title="Summary"
+      content={
+        <FlexCol fw ai="start">
+          {/* <FlexRow fw jc="end">
+            <Button>Edit</Button>
+          </FlexRow> */}
+          <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-line' }}>
             {formatText(summaryData?.text)}
           </Typography>
-        </AccordionDetails>
-      </Accordion>
-    )
+        </FlexCol>
+      }
+      expanded={isSummarySectionExpanded}
+      onChange={() => setIsSummarySectionExpanded((prevIsExpanded) => !prevIsExpanded)}
+      defaultExpanded
+      isLoading={isLoadingStoredSummary}
+    />
   )
 }
 
 const ContentSection = ({ contentData, isLoadingContent }) => {
-  return isLoadingContent ? (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <CircularProgress />
-    </Box>
-  ) : (
-    isString(contentData?.text) && (
-      <Accordion
-        disableGutters
-        square={false}
-        sx={{
-          borderRadius: '10px',
-        }}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Transcript</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="body" component="div" sx={{ whiteSpace: 'pre-line' }}>
+  return (
+    <SectionAccordion
+      title="Transcript"
+      content={
+        <FlexCol fw ai="start">
+          <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-line' }}>
             {contentData?.text || `No transcript available`}
           </Typography>
-        </AccordionDetails>
-      </Accordion>
-    )
+        </FlexCol>
+      }
+      isLoading={isLoadingContent}
+    />
   )
 }
 
-export default () => {
+export default function YoutubeVideo() {
   const [summaryData, setSummaryData, getSummaryData] = useExtendedState({})
   const [contentData, setContentData, getContentData] = useExtendedState({})
   const [isLoadingStoredSummary, setIsLoadingStoredSummary] = useState(true)
@@ -297,9 +317,9 @@ export default () => {
     }
   }
 
-  const compareDates = (prevDateCreated, dateCreated) => {
-    const prevDate = dayjs(prevDateCreated || null)
-    const date = dayjs(dateCreated || null)
+  const compareDates = (prevDateCreated = null, dateCreated = null) => {
+    const prevDate = dayjs(prevDateCreated)
+    const date = dayjs(dateCreated)
     if (prevDate.isValid() && date.isValid()) {
       if (prevDate.isBefore(date)) return 1
       else if (date.isBefore(prevDate)) return -1
@@ -318,10 +338,10 @@ export default () => {
         : text
   }
 
-  const getUpdatedTags = (prevTags, tags, dateComp = 0) => {
+  const getUpdatedTags = (prevTags = [], tags = [], dateComp = 0) => {
     if (dateComp === -1) return prevTags
     else if (dateComp === 1) return tags
-    else return [...new Set([...(prevTags || []), ...(tags || [])])]
+    else return [...new Set([...prevTags, ...tags])]
   }
 
   const cleanup = () => {
@@ -399,41 +419,49 @@ export default () => {
     <ThemeProvider theme={theme}>
       <Paper
         sx={{
-          width: '100%',
-          height: '100%',
+          width: 1,
+          height: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '10px',
-          marginBottom: '10px',
-          backgroundColor: 'black',
+          padding: 1.25,
+          marginBottom: 1.25,
+          bgcolor: 'black',
+          // backgroundImage: (theme) => radialGradient(`black 50%`, `${theme.palette.primary.main}`),
+          border: 2,
+          borderColor: 'primary.main',
+          borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: '10px',
           boxSizing: 'border-box',
           '*': {
             boxSizing: 'border-box',
+            fontFamily: 'Inter, sans-serif',
           },
         }}
       >
         {errorText ? (
           <Typography variant="body2">{errorText}</Typography>
         ) : (
-          <Box
+          <FlexCol
+            fp
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              // backgroundColor: (theme) => theme.palette.primary.main,
-              padding: '10px',
-              borderRadius: '10px',
-              width: '100%',
-              height: '100%',
-              gap: '5px',
+              // bgcolor: (theme) => theme.palette.primary.main,
+              p: 1.25,
+              br: 2,
+              g: 1.5,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-              <Typography>kwiklern</Typography>
-            </Box>
+            <FlexBox fw jc="end">
+              <Typography
+                onClick={() =>
+                  sendMessageToBackground({
+                    action: 'OPEN_MAIN_PAGE',
+                  })
+                }
+              >
+                kwiklern
+              </Typography>
+            </FlexBox>
             <SummarizeButtons {...{ summaryData, startSummarizing, isSummarizing, cleanup }} />
             <CustomTagSection {...{ summaryData, setSummaryData, isSummarizing, getUpdatedTags }} />
             <AutoTagSection {...{ summaryData, setSummaryData, isSummarizing }} />
@@ -446,7 +474,7 @@ export default () => {
               }}
             />
             <ContentSection {...{ contentData, isLoadingContent }} />
-          </Box>
+          </FlexCol>
         )}
       </Paper>
     </ThemeProvider>

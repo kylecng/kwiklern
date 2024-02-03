@@ -1,7 +1,7 @@
 import { IoDocumentTextOutline, IoVideocam, IoVolumeHigh } from 'react-icons/io5'
 import theme from '../theme'
 
-export const CONTENT_TYPE_ENUM = Object.freeze({
+export const CONTENT_TYPE_ENUM = {
   TEXT: {
     name: 'Text',
     icon: IoDocumentTextOutline,
@@ -17,4 +17,4 @@ export const CONTENT_TYPE_ENUM = Object.freeze({
     icon: IoVolumeHigh,
     color: theme.palette.warning.main,
   },
-})
+}

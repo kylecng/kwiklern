@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 
 export const formatText = (text) => {
+  if (!text) return ''
   const segments = text.split(/\*\*([^*]+)\*\*/g)
   return segments.map((segment, index) => {
     return index % 2 === 0 ? (

@@ -1,3 +1,5 @@
+import { entries } from 'lodash'
+
 const typeSchemas = [
   'aboutpage',
   'checkoutpage',
@@ -56,12 +58,14 @@ export default (document, entry) => {
   } catch {
     try {
       ldJson = JSON.parse(decodeURIComponent(ldSchema.replace(/\\x/g, '%')))
-    } catch {}
+    } catch {
+      /* empty */
+    }
   }
   if (!ldJson) {
     return entry
   }
-  Object.entries(attributeLists).forEach(([key, attr]) => {
+  entries(attributeLists).forEach(([key, attr]) => {
     if ((typeof entry[key] === 'undefined' || entry[key] === '') && ldJson[attr]) {
       if (key === 'type' && typeof ldJson[attr] === 'string') {
         return (entry[key] = typeSchemas.includes(ldJson[attr].toLowerCase())

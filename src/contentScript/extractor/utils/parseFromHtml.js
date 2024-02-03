@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // utils -> parseFromHtml
 
 import { stripTags, truncate, unique, pipe } from 'bellajs'
@@ -22,7 +23,6 @@ import { execPreParser, execPostParser } from './transformation.js'
 import getTimeToRead from './getTimeToRead.js'
 
 const summarize = (desc, txt, threshold, maxlen) => {
-  // eslint-disable-line
   return desc.length > threshold ? desc : truncate(txt, maxlen).replace(/\n/g, ' ')
 }
 

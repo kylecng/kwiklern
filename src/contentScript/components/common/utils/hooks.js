@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
+// eslint-disable-next-line react/no-deprecated
 import { createPortal, unmountComponentAtNode } from 'react-dom'
 
 export const useExtendedState = (initialState) => {
   const [state, setState] = useState(initialState)
   const getLatestState = () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       setState((s) => {
         resolve(s)
         return s

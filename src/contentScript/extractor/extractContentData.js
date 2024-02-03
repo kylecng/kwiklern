@@ -8,7 +8,7 @@ const extractSiteSpecificData = async (extractedData, pageHtml, url) => {
   if (!DOMParser) var { DOMParser } = await import('linkedom')
   const doc = new DOMParser().parseFromString(pageHtml, 'text/html')
   if (url.includes('youtube.com/watch')) {
-    const videoId = /\?v\=([^\&\=\?]*)/.exec(extractedData?.url || '')?.[1]
+    const videoId = /\?v=([^&=?]*)/.exec(extractedData?.url || '')?.[1]
     if (videoId) extractedData.url = `https://www.youtube.com/watch?v=${videoId}`
     extractedData.type = 'VIDEO'
     extractedData.text = await getYoutubeTranscript(pageHtml)

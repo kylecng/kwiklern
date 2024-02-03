@@ -6,6 +6,7 @@ const directoryPath = 'build/vendor'
 // const searchFile = '@extractus_article-extractor.js'
 const searchFile = ''
 const searchText = [
+  `\\sconsole.warn\\(\`Module "source-map-js" has been externalized for browser compatibility. Cannot access "source-map-js.SourceMapConsumer" in client code. See http://vitejs.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.\`\\);`,
   `\\sconsole.warn\\(\`Module "source-map-js" has been externalized for browser compatibility. Cannot access "source-map-js.\\$\\{key\\}" in client code. See http://vitejs.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.\`\\);`,
   `\\sconsole.warn\\(\`Module "perf_hooks" has been externalized for browser compatibility. Cannot access "perf_hooks.\\$\\{key2\\}" in client code. See http://vitejs.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.\`\\);`,
 ].join('|')
@@ -42,7 +43,9 @@ function removeLinesFromFile() {
         }
       })
     })
-  } catch {}
+  } catch {
+    /* empty */
+  }
 }
 
-const intervalId = setInterval(removeLinesFromFile, 3000)
+setInterval(removeLinesFromFile, 3000)

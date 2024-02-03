@@ -1,5 +1,7 @@
 import { defineManifest } from '@crxjs/vite-plugin'
-import packageData from '../package.json' assert { type: 'json' }
+import { readFile } from 'node:fs/promises'
+const fileUrl = new URL('../package.json', import.meta.url)
+const packageData = JSON.parse(await readFile(fileUrl, 'utf8'))
 
 export default defineManifest({
   name: packageData.name,
