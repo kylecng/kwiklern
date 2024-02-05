@@ -9,6 +9,7 @@ import { CircularProgress, Typography } from '@mui/material'
 import { sendMessageToBackground } from '../../utils'
 import './index.css'
 import { FlexBox, FlexRow } from '../common/Layout'
+import Options from './Options'
 
 const RequireAuth = ({ children }) => {
   let location = useLocation()
@@ -62,6 +63,14 @@ const App = () => {
               element={
                 <RequireAuth>
                   <Table selectedTableId={0} />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/options"
+              element={
+                <RequireAuth>
+                  <Options />
                 </RequireAuth>
               }
             />

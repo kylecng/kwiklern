@@ -518,6 +518,45 @@ class Database {
       return { error: err }
     }
   }
+
+  async getOptions() {
+    let data, error, options
+    try {
+      ;({ data, error } = await supabase
+        .from('userDatas')
+        .select('options')
+        .eq('id', this.user?.id))
+      if (error) throw error
+
+      if (!isEmpty(data)) {
+        options = data[0].options
+        dataCache.userData.options = options
+      }
+      return { options }
+    } catch (err) {
+      return { error: err, options }
+    }
+  }
+
+  async updateOptions(newOptions) {
+    let data, error, options
+    try {
+      ;({ data, error } = await supabase
+        .from('userDatas')
+        .update({ options: newOptions })
+        .eq('id', this.user?.id)
+        .select('options'))
+      if (error) throw error
+
+      if (!isEmpty(data)) {
+        options = data[0].options
+        dataCache.userData.options = options
+      }
+      return { options }
+    } catch (err) {
+      return { error: err, options }
+    }
+  }
 }
 
 const database = new Database()

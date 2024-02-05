@@ -84,6 +84,7 @@ export default function EnhancedTable() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [filteredRows, setFilteredRows] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     const newFilteredRows = rows.filter((row) => {
@@ -425,7 +426,11 @@ export default function EnhancedTable() {
 
   return (
     <FlexCol fp g={2.5} p={3} sx={{ overflow: 'hidden' }}>
-      {' '}
+      <FlexRow fw jc="end" sx={{ flexShrink: 0 }}>
+        <Button onClick={() => navigate('/options')}>
+          <StyledIcon icon={RiSettings3Fill} size="3rem" />
+        </Button>
+      </FlexRow>
       {isLoading ? (
         <FlexBox fw f={1}>
           <CircularProgress />

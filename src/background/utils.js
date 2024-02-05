@@ -1,6 +1,8 @@
 import { isEmpty, isString } from 'bellajs'
 import Browser from 'webextension-polyfill'
-import { devErr, devLog, getErrStr } from '../utils'
+import { devErr, devLog } from '../utils'
+import { Database } from '../database'
+import { DEFAULT_OPTIONS } from '../constants'
 
 export async function sendMessageToContentScript(tabId, message, timeout) {
   const messagePromise = (async () => {
@@ -27,13 +29,21 @@ export async function sendMessageToContentScript(tabId, message, timeout) {
 }
 
 export async function getPrompt(contentData, isUseAutoTags = true) {
-  const { text, title, author } = contentData
+  const { text, title } = contentData
   if (isEmpty(text)) return
-  return `Use up to 15 brief bullet points to summarize the content below. Choose an appropriate emoji for each bullet point\n${
+
+  const { options, error } = await Database.getOptions()
+  if (error) return
+  const summaryPrompt = options?.summaryPrompt || DEFAULT_OPTIONS.summaryPrompt
+  const summaryTemplate = options?.summaryTemplate || DEFAULT_OPTIONS.summaryTemplate
+
+  if (!isString(summaryPrompt) || !isString(summaryTemplate)) return
+
+  return `${summaryPrompt}\n${
     isUseAutoTags ? `Also return a comma-separated array of tags within brackets.\n` : ''
   }Your output should use the following template:\n${
     isUseAutoTags ? `### Tags [tag1, tag2, ...]\n` : ''
-  }### Summary\n- [Emoji] Bulletpoint\n\n${title} ${text}.`
+  }### Summary\n${summaryTemplate}\n\n${title} ${text}.`
 }
 
 export function parseSummaryText(text) {

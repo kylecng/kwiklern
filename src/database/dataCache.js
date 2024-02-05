@@ -1,5 +1,5 @@
 const dataCache = {
-  userData: {},
+  userData: { options: {} },
   summaries: {},
   contents: {},
   authors: {},
