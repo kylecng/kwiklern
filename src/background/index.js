@@ -5,8 +5,8 @@ import { OpenAIProvider } from './providers/openai'
 import { getPrompt, parseSummaryText, sendMessageToContentScript } from './utils'
 import { Database } from '../database'
 import { isEmpty, isString } from 'bellajs'
-import EventEmitter from 'events'
-import { trySilent, devLog, devErr, devInfo, getErrStr, IS_DEV_MODE } from '../utils'
+import EventEmitter from 'eventemitter3'
+import { trySilent, devErr, devInfo, getErrStr, IS_DEV_MODE } from '../utils'
 import { testEmail, testPassword } from '../secrets/secrets.supabase'
 
 devInfo(
@@ -63,7 +63,7 @@ const contexts = [
 // Add an event emitter to handle the context menu item click
 Browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (['summarizeLink', 'summarizePage'].includes(info.menuItemId)) {
-    const { user, session, error } = await Database.getSession()
+    const { session, error } = await Database.getSession()
     if (error || isEmpty(session)) {
       return
     }
@@ -110,9 +110,9 @@ async function generateAnswers({ emitter, controller, prompt }) {
       },
     }))
   } catch (error) {
-    trySilent(() => emitter?.emit('message', { error: error, status: 'ERROR' }))
+    trySilent(() => emitter.emit('message', { error: error, status: 'ERROR' }))
   } finally {
-    trySilent(() => cleanup?.())
+    trySilent(() => cleanup())
     trySilent(() => emitter.emit('doCleanup', () => {}))
   }
 }
@@ -167,7 +167,7 @@ const messageHandler = ({
   port,
   isSendStatusOnly,
   isUseAutoTags,
-  hasStoredSummary,
+  // hasStoredSummary,
   contentData,
   summaryData,
 }) => {
@@ -178,7 +178,6 @@ const messageHandler = ({
   emitter.on('message', async (msg) => {
     if (!msg) return
     const { status, error, data } = msg
-    const outMsg = {}
     const { text: newText, autoTags: newAutoTags } = parseSummaryText(data?.text)
     if (isString(newText) && newText) text = newText
     if (isUseAutoTags && !isEmpty(newAutoTags)) autoTags = newAutoTags
@@ -222,9 +221,9 @@ const messageHandler = ({
   })
 
   emitter.on('doCleanup', () => {
-    trySilent(() => controller?.abort())
-    trySilent(() => emitter?.removeAllListeners())
-    trySilent(() => port?.postMessage({ status: 'DISCONNECT' }))
+    // trySilent(() => controller?.abort());
+    // trySilent(() => emitter?.removeAllListeners());
+    // trySilent(() => port?.postMessage({ status: 'DISCONNECT' }));
   })
 
   port?.onDisconnect.addListener(() => {
@@ -234,9 +233,9 @@ const messageHandler = ({
 }
 
 // try {
-//   const prompt = `Who are you?`
-//   const { emitter, controller } = messageHandler({})
-//   generateAnswers({ emitter, controller, prompt })
+//   const prompt = `Who are you?`;
+//   const { emitter, controller } = messageHandler({});
+//   generateAnswers({ emitter, controller, prompt });
 // } catch (error) {
-//   devErr(error)
+//   devErr(error);
 // }

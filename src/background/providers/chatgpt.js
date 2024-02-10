@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { fetchSSE } from '../fetch-sse'
 import { BASE_URL } from '../../config'
 import { getSecurityToken } from './security'
-import { devErr, devLog, trySilent } from '../../utils'
+import { devErr, trySilent } from '../../utils'
 
 async function request(token, method, path, data) {
   return fetch(`${BASE_URL}/backend-api${path}`, {
@@ -65,8 +65,6 @@ export class ChatGPTProvider {
   }
 
   async generateAnswer(params) {
-    const security_token = getSecurityToken && getSecurityToken()
-
     let conversationId
 
     const cleanup = () => {
@@ -91,7 +89,10 @@ export class ChatGPTProvider {
           messages: [
             {
               id: uuidv4(),
-              role: 'user',
+              // role: 'user',
+              author: {
+                role: 'user',
+              },
               content: {
                 content_type: 'text',
                 parts: [params.prompt],
@@ -99,9 +100,13 @@ export class ChatGPTProvider {
             },
           ],
           model: modelName,
-          arkose_token: security_token || null,
+          arkose_token: getSecurityToken?.() || null,
           parent_message_id: uuidv4(),
           timezone_offset_min: new Date().getTimezoneOffset(),
+          conversation_mode: { kind: 'primary_assistant' },
+          force_paragen: false,
+          force_rate_limit: false,
+          history_and_training_disabled: false,
         }),
         onMessage(message) {
           try {
@@ -113,6 +118,7 @@ export class ChatGPTProvider {
             try {
               data = JSON.parse(message)
             } catch (err) {
+              devErr(err)
               return
             }
             const error = data.error
