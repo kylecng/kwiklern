@@ -10,7 +10,7 @@ import { linearGradient } from '../../common/utils/color'
 import { CONTENT_TYPE_ENUM } from '../../common/utils/constants'
 import { AiFillCalendar } from 'react-icons/ai'
 import { StyledIcon } from '../../common/Icon'
-import { Button, Link, MenuItem, Typography } from '@mui/material'
+import { Button, Link, MenuItem } from '@mui/material'
 import { PiListBulletsBold } from 'react-icons/pi'
 import EnhancedTableHead from './EnhancedTableHead'
 import EnhancedTableRow from './EnhancedTableRow'
@@ -71,13 +71,15 @@ export default function EnhancedTable() {
     // setIncludedColumns
   ] = useState(['checkbox', 'metadata', 'summaryText', 'actions'])
   const [isLoading, setIsLoading] = useState(true)
-  const [customTagsOptions, setCustomTagsOptions] = useState([])
-  const [autoTagsOptions, setAutoTagsOptions] = useState([])
-  const [authorsOptions, setAuthorsOptions] = useState({})
-  const [selectedCustomTags, setSelectedCustomTags] = useState([])
-  const [selectedAutoTags, setSelectedAutoTags] = useState([])
-  const [selectedAuthors, setSelectedAuthors] = useState([])
-  const [selectedTypes, setSelectedTypes] = useState([])
+  const filters = { search: '', customTags: [], autoTags: [], authors: [], contentTypes: [] }
+  const filterStates = fromPairs(
+    entries(filters).map(([key, initialValue]) => [
+      key,
+      fromPairs(zip(['value', 'set'], useState(initialValue))),
+    ]),
+  )
+  const [filterOptions, setFilterOptions] = useState({})
+  const [filterFns, setFilterFns] = useState({})
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState('product')
   const [selectedRows, setSelectedRows] = useState([])
@@ -85,19 +87,17 @@ export default function EnhancedTable() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [filteredRows, setFilteredRows] = useState([])
   const navigate = useNavigate()
+  const markInstance = new Mark(document.querySelector('#table-body'))
 
   useEffect(() => {
     const newFilteredRows = rows.filter((row) => {
-      if (
-        selectedCustomTags?.length > 0 &&
-        selectedCustomTags.every((customTag) => !row?.customTags?.includes(customTag))
-      ) {
-        return false
+      for (const filterFn of values(filterFns)) {
+        if (!filterFn(row)) return false
       }
       return true
     })
     setFilteredRows(newFilteredRows)
-  }, [rows, selectedCustomTags, selectedAutoTags, selectedAuthors, selectedTypes])
+  }, [rows, filterFns])
 
   const visibleRows = useMemo(
     () =>
@@ -170,9 +170,12 @@ export default function EnhancedTable() {
               dateModified,
             }
           })
-          setCustomTagsOptions(newCustomTagsOptions)
-          setAutoTagsOptions(newAutoTagsOptions)
-          setAuthorsOptions(newAuthorsOptions)
+          setFilterOptions({
+            customTags: [...newCustomTagsOptions],
+            autoTags: [...newAutoTagsOptions],
+            authors: newAuthorsOptions,
+          })
+
           setRows(newRows)
         }
       } catch (err) {
@@ -185,10 +188,10 @@ export default function EnhancedTable() {
     fetchData()
   }, [])
 
-  // useEffect(() => {
-  //   if (isFirstRender) return
-  //   rows.forEach((row) => processTokenizedDataRow(row))
-  // }, [rows])
+  useEffect(() => {
+    if (isFirstRender) return
+    processTokenizedData(rows)
+  }, [rows])
 
   const getDefaultHeaderCell = (value, icon) => (
     <FlexRow g={1}>
@@ -323,8 +326,12 @@ export default function EnhancedTable() {
                   {author?.name}
                 </Link>
               </FlexBox>
-              {renderTags(customTags, selectedCustomTags, setSelectedCustomTags)}
-              {renderTags(autoTags, selectedAutoTags, setSelectedAutoTags)}
+              {renderTags(
+                customTags,
+                filterStates['customTags'].value,
+                filterStates['customTags'].set,
+              )}
+              {renderTags(autoTags, filterStates['autoTags'].value, filterStates['autoTags'].set)}
             </FlexCol>
           )
         },
@@ -334,7 +341,8 @@ export default function EnhancedTable() {
         headerCellProps: { sx: { width: 0.6 } },
         getHeaderCell: () => getDefaultHeaderCell('Summary', PiListBulletsBold),
         getDataCell: ({ summaryText }) => (
-          <Typography sx={{ whiteSpace: 'pre-line' }}>{summaryText}</Typography>
+          // <Typography sx={{ whiteSpace: "pre-line" }}>{summaryText}</Typography>
+          <Markdown>{summaryText}</Markdown>
         ),
       },
       {
@@ -424,6 +432,14 @@ export default function EnhancedTable() {
   //   setSelectedTags(selectedTags.filter((t) => t !== tag));
   // };
 
+  useEffect(() => {
+    markInstance.unmark({
+      done: () => {
+        markInstance.mark(filterStates.search.value)
+      },
+    })
+  }, [filteredRows, filterStates.search])
+
   return (
     <FlexCol fp g={2.5} p={3} sx={{ overflow: 'hidden' }}>
       <FlexRow fw jc="end" sx={{ flexShrink: 0 }}>
@@ -439,17 +455,9 @@ export default function EnhancedTable() {
         <FlexRow fw f={1} minh={0} pos="relative" g={3}>
           <FlexCol w={0.2} jc="start" fh pos="relative">
             <EnhancedTableFilter
-              customTagsOptions={customTagsOptions}
-              selectedCustomTags={selectedCustomTags}
-              onCustomTagsChange={setSelectedCustomTags}
-              autoTagsOptions={autoTagsOptions}
-              selectedAutoTags={selectedAutoTags}
-              onAutoTagsChange={setSelectedAutoTags}
-              authorsOptions={authorsOptions}
-              selectedAuthors={selectedAuthors}
-              onAuthorsChange={setSelectedAuthors}
-              selectedTypes={selectedTypes}
-              onTypesChange={setSelectedTypes}
+              filterStates={filterStates}
+              filterOptions={filterOptions}
+              setFilterFns={setFilterFns}
             />
           </FlexCol>
           <FlexBox fh f={1} jc="start" pos="relative">

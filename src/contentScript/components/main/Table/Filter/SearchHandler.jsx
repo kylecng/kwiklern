@@ -1,50 +1,41 @@
 import nlp from 'compromise'
+import markdownToTxt from 'markdown-to-txt'
 
-export const searchCache = { searchableTerms: {} }
+export const searchCache = { searchableTerms: {}, summaries: {} }
 
-export const processTokenizedDataRow = (summary) => {
-  const { id, summaryText, contentText } = summary
+export const processTokenizedData = (rows) => {
+  if (!('searchableTerms' in searchCache)) searchCache.searchableTerms = {}
   if (!('summaries' in searchCache)) searchCache.summaries = {}
+  rows.forEach((row) => processTokenizedDataRow(row))
+}
+
+export const processTokenizedDataRow = (row) => {
+  const { id, summaryText, contentText, title } = row
   if (!('id' in searchCache.summaries)) searchCache.summaries[id] = {}
   const cachedSummary = searchCache.summaries[id]
+  const { searchableTerms } = searchCache
+  processTextType('summaryText', id, summaryText, searchableTerms, cachedSummary)
+  // processTextType("content", id, contentText, searchableTerms, cachedSummary);
+  processTextType('title', id, title, searchableTerms, cachedSummary)
+}
 
-  if (!('tokenizedSummaryText' in cachedSummary)) {
-    cachedSummary.tokenizedSummaryText = nlp(summaryText).json()
-    cachedSummary.tokenizedSummaryText.forEach((line) =>
-      line.terms.forEach((term) => term.index.push(id)),
-    )
-  }
-  if (!('tokenizedContentText' in cachedSummary)) {
-    cachedSummary.tokenizedContentText = nlp(contentText).json()
-  }
+const processTextType = (textType, id, text, searchableTerms, cachedSummary) => {
+  const textTypeTokenizedKey = `${textType}Tokenized`
 
-  if (!('searchableTerms' in searchCache)) searchCache.searchableTerms = {}
-  const searchableTerms = searchCache.searchableTerms
-
-  if (!('summary' in searchableTerms)) searchableTerms.summary = {}
-  const searchableSummaryTerms = searchableTerms.summary
-  const firstSummaryTerm = cachedSummary.tokenizedSummaryText?.[0]?.terms?.[0]
-  if (
-    firstSummaryTerm &&
-    !(`${id}|${firstSummaryTerm.index[0]}|${firstSummaryTerm.index[1]}` in searchableSummaryTerms)
-  ) {
-    cachedSummary.tokenizedSummaryText.forEach((line) =>
-      line.terms.forEach(
-        (term) => (searchableSummaryTerms[`${id}|${term.index[0]}|${term.index[1]}`] = term),
-      ),
+  if (!(textTypeTokenizedKey in cachedSummary)) {
+    cachedSummary[textTypeTokenizedKey] = nlp(markdownToTxt(text)).json()
+    cachedSummary[textTypeTokenizedKey].forEach((line) =>
+      line.terms.forEach((term) => term.index.push(id, textType)),
     )
   }
 
-  if (!('content' in searchableTerms)) searchableTerms.content = {}
-  const searchableContentTerms = searchableTerms.content
-  const firstContentTerm = cachedSummary.tokenizedContentText?.[0]?.terms?.[0]
-  if (
-    firstContentTerm &&
-    !(`${id}|${firstContentTerm.index[0]}|${firstContentTerm.index[1]}` in searchableContentTerms)
-  ) {
-    cachedSummary.tokenizedContentText.forEach((line) =>
+  if (!(textType in searchableTerms)) searchableTerms[textType] = {}
+  const terms = searchableTerms[textType]
+  const firstTerm = cachedSummary?.[textTypeTokenizedKey]?.[0]?.terms?.[0]
+  if (firstTerm && !(`${textType}|${id}|${firstTerm.index[0]}|${firstTerm.index[1]}` in terms)) {
+    cachedSummary?.[textTypeTokenizedKey].forEach((line) =>
       line.terms.forEach(
-        (term) => (searchableContentTerms[`${id}|${term.index[0]}|${term.index[1]}`] = term),
+        (term) => (terms[`${textType}|${id}|${term.index[0]}|${term.index[1]}`] = term),
       ),
     )
   }

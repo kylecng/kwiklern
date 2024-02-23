@@ -1,43 +1,72 @@
-import { Box, Chip, Stack } from '@mui/material'
+import { Box, Chip, InputAdornment, TextField } from '@mui/material'
 import FilterAutocomplete from './FilterAutocomplete'
 import { CONTENT_TYPE_ENUM } from '../../../common/utils/constants'
 import { StyledIcon } from '../../../common/Icon'
-import SearchAutocomplete from './SearchAutocomplete'
+// import SearchAutocomplete from './SearchAutocomplete'
 import { FlexCol, FlexRow } from '../../../common/Layout'
+import { intersection, isEmpty, keys } from 'lodash'
+import { FaSearch } from 'react-icons/fa'
 
-export default function EnhancedTableFilter({
-  sx,
-  customTagsOptions,
-  selectedCustomTags,
-  onCustomTagsChange,
-  autoTagsOptions,
-  selectedAutoTags,
-  onAutoTagsChange,
-  authorsOptions,
-  selectedAuthors,
-  onAuthorsChange,
-  selectedTypes,
-  onTypesChange,
-}) {
+export default function EnhancedTableFilter({ sx, filterStates, filterOptions, setFilterFns }) {
+  const onChangeBase = (filter, getFilterFn, modifyVal) => (val) => {
+    const value = modifyVal ? modifyVal(val) : val
+    filterStates?.[filter]?.set?.(value)
+    return setFilterFns((prevFilterFns) => ({
+      ...prevFilterFns,
+      [filter]: getFilterFn(value),
+    }))
+  }
+
+  const defaultProps = (filter) => ({
+    options: filterOptions?.[filter] || [],
+    value: filterStates?.[filter]?.value,
+  })
+
   return (
     <FlexCol fw sx={{ g: 2, ...sx }}>
-      <SearchAutocomplete />
+      {/* <SearchAutocomplete /> */}
+      <TextField
+        size="small"
+        sx={{ width: 1 }}
+        value={filterStates?.search.value}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <StyledIcon icon={FaSearch} />
+            </InputAdornment>
+          ),
+        }}
+        onChange={onChangeBase(
+          'search',
+          (value) => {
+            return (row) => {
+              return isEmpty(value) || row?.summaryText?.toLowerCase().includes(value.toLowerCase())
+            }
+          },
+          (value) => value?.target?.value,
+        )}
+      />
       <FilterAutocomplete
-        options={customTagsOptions}
-        selectedOptions={selectedCustomTags}
-        onChange={onCustomTagsChange}
+        {...defaultProps('customTags')}
+        onChange={onChangeBase(
+          'customTags',
+          (value) => (row) => isEmpty(value) || !isEmpty(intersection(value, row?.customTags)),
+        )}
         label="by custom tag"
       />
       <FilterAutocomplete
-        options={autoTagsOptions}
-        selectedOptions={selectedAutoTags}
-        onChange={onAutoTagsChange}
+        {...defaultProps('autoTags')}
+        onChange={onChangeBase(
+          'autoTags',
+          (value) => (row) => isEmpty(value) || !isEmpty(intersection(value, row?.autoTags)),
+        )}
         label="by auto-tag"
       />
       <FilterAutocomplete
-        options={Object.keys(authorsOptions)}
+        {...defaultProps('authors')}
+        options={keys(filterOptions.authors)}
         renderOption={(props) => {
-          return <AuthorOption props={props} author={authorsOptions[props.key]} />
+          return <AuthorOption props={props} author={filterOptions.authors[props.key]} />
         }}
         renderTags={(value, getTagProps) => {
           return (
@@ -53,7 +82,7 @@ export default function EnhancedTableFilter({
                 <Chip
                   key={`${option}${index}`}
                   {...getTagProps({ index })}
-                  label={<AuthorOption author={authorsOptions[option]} />}
+                  label={<AuthorOption author={filterOptions.authors[option]} />}
                   sx={{
                     '& .MuiStack-root': {
                       overflow: 'hidden',
@@ -64,12 +93,14 @@ export default function EnhancedTableFilter({
             </FlexRow>
           )
         }}
-        selectedOptions={selectedAuthors}
-        onChange={onAuthorsChange}
+        onChange={onChangeBase('authors', (value) => (row) => {
+          return isEmpty(value) || value.includes(row?.author?.id)
+        })}
         label="by author/channel"
       />
       <FilterAutocomplete
-        options={Object.keys(CONTENT_TYPE_ENUM)}
+        {...defaultProps('contentTypes')}
+        options={keys(CONTENT_TYPE_ENUM)}
         renderOption={(props) => {
           return <ContentTypeOption props={props} contentType={CONTENT_TYPE_ENUM[props.key]} />
         }}
@@ -98,9 +129,11 @@ export default function EnhancedTableFilter({
             </FlexRow>
           )
         }}
-        selectedOptions={selectedTypes}
-        onChange={onTypesChange}
-        label="by file type"
+        onChange={onChangeBase(
+          'contentTypes',
+          (value) => (row) => isEmpty(value) || value.includes(row?.contentType),
+        )}
+        label="by content type"
       />
     </FlexCol>
   )
@@ -123,15 +156,6 @@ const AuthorOption = ({ props, author }) => {
       )}
       {author?.name}
     </FlexRow>
-  )
-}
-
-const FileTypeOption = ({ props, contentType }) => {
-  return (
-    <Stack {...props} direction="row" alignItems="center" gap={1}>
-      {contentType.icon && <StyledIcon icon={contentType.icon} />}
-      {contentType.name}
-    </Stack>
   )
 }
 

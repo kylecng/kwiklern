@@ -1,50 +1,60 @@
-import { Autocomplete, TextField, Box, Typography, InputAdornment } from '@mui/material'
+import { Autocomplete, TextField, Box, Typography } from '@mui/material'
 import { matchSorter } from 'match-sorter'
-import { StyledIcon } from '../../../common/Icon'
-import { FaSearch } from 'react-icons/fa'
-import { devLog } from '../../../../../utils'
 import { searchCache } from './SearchHandler'
+import { FlexBox } from '../../../common/Layout'
+import { keys } from 'lodash'
 
-const SearchAutocomplete = (props) => {
-  const { sx, onChange } = props
+export default function SearchAutocomplete(props) {
+  const {
+    sx,
+    // onChange
+  } = props
 
-  const options = Object.keys(searchCache?.searchableTerms?.summary || {})
-  const renderOption = (props, option, state, ownerState) => {
+  const textType = 'summaryText'
+  const textTypeTokenizedKey = `${textType}Tokenized`
+
+  const options = [...keys(searchCache?.searchableTerms?.[textType] || {})]
+
+  const renderOption = (props, option) => {
     const { id, index } = option
-    const [lineId, termId, summaryId] = index
+    const [lineId, termId, summaryId, textType] = index
     return (
-      <Box key={id}>
+      <FlexBox key={id} jc="start" px={2} pb={1} sx={{ '&:hover': { bgcolor: '#494949' } }}>
         <Typography>
-          {searchCache?.summaries?.[summaryId]?.tokenizedSummaryText?.[lineId]?.terms?.map(
+          {searchCache?.summaries?.[summaryId]?.[textTypeTokenizedKey]?.[lineId]?.terms?.map(
             ({ text, pre, post }, termIndex) => (
               <Box
+                key={termIndex}
                 component="span"
-                sx={{ color: (theme) => (termId === termIndex ? 'orange' : 'white') }}
+                sx={{ color: () => (termId === termIndex ? 'orange' : 'white') }}
               >{`${pre}${text}${post}`}</Box>
             ),
           )}
         </Typography>
-      </Box>
+      </FlexBox>
     )
   }
+
   const filterOptions = (options, { inputValue }) => {
     if (inputValue === '') return []
     const filteredOptions = matchSorter(
-      options.map((option) => searchCache?.searchableTerms?.summary?.[option]),
+      options.map((option) => searchCache?.searchableTerms?.[textType]?.[option]),
       inputValue,
       { keys: ['text'] },
     )
     return filteredOptions.length > 5 ? filteredOptions.slice(0, 5) : filteredOptions
   }
+
   return (
     <Autocomplete
       sx={{
-        width: '100%',
-        '& .MuiInputBase-root': {
-          border: '1px solid #303030',
-          borderRadius: '20px',
-          backgroundColor: '#121212',
-        },
+        width: 1,
+        // "& .MuiInputBase-root": {
+        //   border: 1,
+        //   borderColor: "#303030",
+        //   borderRadius: 4,
+        //   bgcolor: "#121212",
+        // },
         ...sx,
       }}
       freeSolo
@@ -60,18 +70,20 @@ const SearchAutocomplete = (props) => {
           placeholder={`search`}
           // InputProps={{
           //   startAdornment: (
-          //     <InputAdornment position="start" sx={{ marginLeft: "10px" }}>
+          //     <InputAdornment position="start" sx={{ marginLeft: 1.25 }}>
           //       <StyledIcon icon={FaSearch} />
           //     </InputAdornment>
           //   ),
           // }}
         />
       )}
-      onChange={(event, value) => {
-        // if (value) return onChange(value);
-      }}
+      // ListboxComponent={(props) => {
+      //   return <FlexCol {...props} jc="space-between" g={2} p={2} />;
+      // }}
+      // open
+      // onChange={(event, value) => {
+      //   if (value) return onChange(value);
+      // }}
     />
   )
 }
-
-export default SearchAutocomplete

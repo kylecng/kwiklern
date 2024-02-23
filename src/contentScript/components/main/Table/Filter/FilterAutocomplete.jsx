@@ -7,7 +7,7 @@ export default function FilterAutocomplete(props) {
     getOptionLabel,
     renderOption,
     renderTags,
-    selectedOptions,
+    value,
     onChange,
     label,
     placeholder,
@@ -34,9 +34,9 @@ export default function FilterAutocomplete(props) {
         <TextField {...params} size="small" label={label} placeholder={placeholder} />
       )}
       renderTags={renderTags}
-      value={selectedOptions}
-      onChange={(event, value) => {
-        if (value) return onChange(value)
+      value={value}
+      onChange={(event, val) => {
+        return onChange(val)
       }}
     />
   )
