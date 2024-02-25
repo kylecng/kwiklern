@@ -29,8 +29,8 @@ import { FlexBox, FlexCol, FlexRow, FlexDivider } from '../common/Layout'
 
 const SummarizeButton = ({ buttonText, onClick }) => (
   <Button
-    variant="contained"
-    size="large"
+    variant='contained'
+    size='large'
     onClick={onClick}
     sx={{
       bgcolor: 'primary.main',
@@ -40,7 +40,7 @@ const SummarizeButton = ({ buttonText, onClick }) => (
     }}
   >
     <Typography
-      variant="h6"
+      variant='h6'
       sx={{
         color: 'primary.contrastText',
         // background: radialGradient(`white 50%`, `${theme.palette.primary.main}`),
@@ -56,7 +56,7 @@ const SummarizeButton = ({ buttonText, onClick }) => (
 const SummarizeButtons = ({ startSummarizing, isSummarizing, cleanup }) => {
   return (
     <FlexBox
-      component="form"
+      component='form'
       fp
       sx={{
         ai: 'stretch',
@@ -65,13 +65,13 @@ const SummarizeButtons = ({ startSummarizing, isSummarizing, cleanup }) => {
     >
       {!isSummarizing && (
         <SummarizeButton
-          buttonText="Summarize"
+          buttonText='Summarize'
           onClick={() => startSummarizing({ isUseAutoTags: false })}
         />
       )}
       {!isSummarizing && (
         <SummarizeButton
-          buttonText="Summarize w/ Auto-Tags"
+          buttonText='Summarize w/ Auto-Tags'
           onClick={() => startSummarizing({ isUseAutoTags: true })}
         />
       )}
@@ -88,7 +88,7 @@ const SummarizeButtons = ({ startSummarizing, isSummarizing, cleanup }) => {
 const Tags = ({ tagsType, summaryData, setSummaryData, isSummarizing }) => {
   return (
     !isEmpty(summaryData?.[tagsType]) && (
-      <FlexRow fw jc="start" sx={{ rowGap: 0, columnGap: 0.25, flexWrap: 'wrap' }}>
+      <FlexRow fw jc='start' sx={{ rowGap: 0, columnGap: 0.25, flexWrap: 'wrap' }}>
         {summaryData?.[tagsType].map((tag, index) => (
           <Chip
             key={`${tag}${index}`}
@@ -115,8 +115,8 @@ const Tags = ({ tagsType, summaryData, setSummaryData, isSummarizing }) => {
 const CustomTagSection = ({ summaryData, setSummaryData, isSummarizing, getUpdatedTags }) => {
   return (
     <FlexCol fw g={0.5}>
-      <FlexBox fw jc="space-between">
-        <Typography variant="h4" display="inline-flex" sx={{ display: 'inline' }}>
+      <FlexBox fw jc='space-between'>
+        <Typography variant='h4' display='inline-flex' sx={{ display: 'inline' }}>
           Custom Tags
         </Typography>
         {!isSummarizing && (
@@ -132,7 +132,7 @@ const CustomTagSection = ({ summaryData, setSummaryData, isSummarizing, getUpdat
           >
             <FlexRow>
               <StyledIcon icon={FaTimes} />
-              <Typography variant="body1">Clear all</Typography>
+              <Typography variant='body1'>Clear all</Typography>
             </FlexRow>
           </Button>
         )}
@@ -151,7 +151,7 @@ const CustomTagSection = ({ summaryData, setSummaryData, isSummarizing, getUpdat
         }}
         options={['abc', 'def']}
         renderInput={(params) => (
-          <TextField {...params} size="small" placeholder="Add Custom Tags..." />
+          <TextField {...params} size='small' placeholder='Add Custom Tags...' />
         )}
         sx={{
           width: 1,
@@ -175,7 +175,7 @@ const AutoTagSection = ({ summaryData, setSummaryData, isSummarizing }) => {
   return (
     !isEmpty(summaryData?.autoTags) && (
       <FlexBox>
-        <Typography variant="h4">Auto-Generated Tags</Typography>
+        <Typography variant='h4'>Auto-Generated Tags</Typography>
         <Tags {...{ tagsType: 'autoTags', summaryData, setSummaryData, isSummarizing }} />
       </FlexBox>
     )
@@ -188,7 +188,7 @@ const SectionAccordion = ({ isLoading, title, content, ...restProps }) => {
       <CircularProgress />
     </FlexBox>
   ) : (
-    <FlexBox fw br={2} overflow="hidden">
+    <FlexBox fw br={2} overflow='hidden'>
       <Accordion
         disableGutters
         square={false}
@@ -199,10 +199,10 @@ const SectionAccordion = ({ isLoading, title, content, ...restProps }) => {
         {...restProps}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">{title}</Typography>
+          <Typography variant='h4'>{title}</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{ width: 1 }}>
-          <FlexCol fw ai="start">
+          <FlexCol fw ai='start'>
             <FlexDivider />
             {content}
           </FlexCol>
@@ -220,13 +220,13 @@ const SummarySection = ({
 }) => {
   return (
     <SectionAccordion
-      title="Summary"
+      title='Summary'
       content={
-        <FlexCol fw ai="start">
+        <FlexCol fw ai='start'>
           {/* <FlexRow fw jc="end">
             <Button>Edit</Button>
           </FlexRow> */}
-          <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography variant='body1' component='div' sx={{ whiteSpace: 'pre-line' }}>
             {formatText(summaryData?.text)}
           </Typography>
         </FlexCol>
@@ -242,10 +242,10 @@ const SummarySection = ({
 const ContentSection = ({ contentData, isLoadingContent }) => {
   return (
     <SectionAccordion
-      title="Transcript"
+      title='Transcript'
       content={
-        <FlexCol fw ai="start">
-          <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-line' }}>
+        <FlexCol fw ai='start'>
+          <Typography variant='body1' component='div' sx={{ whiteSpace: 'pre-line' }}>
             {contentData?.text || `No transcript available`}
           </Typography>
         </FlexCol>
@@ -441,7 +441,7 @@ export default function YoutubeVideo() {
         }}
       >
         {errorText ? (
-          <Typography variant="body2">{errorText}</Typography>
+          <Typography variant='body2'>{errorText}</Typography>
         ) : (
           <FlexCol
             fp
@@ -452,7 +452,7 @@ export default function YoutubeVideo() {
               g: 1.5,
             }}
           >
-            <FlexBox fw jc="end">
+            <FlexBox fw jc='end'>
               <Typography
                 onClick={() =>
                   sendMessageToBackground({

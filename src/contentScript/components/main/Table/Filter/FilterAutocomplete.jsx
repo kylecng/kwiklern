@@ -31,7 +31,7 @@ export default function FilterAutocomplete(props) {
       getOptionLabel={getOptionLabel}
       renderOption={renderOption}
       renderInput={(params) => (
-        <TextField {...params} size="small" label={label} placeholder={placeholder} />
+        <TextField {...params} size='small' label={label} placeholder={placeholder} />
       )}
       renderTags={renderTags}
       value={value}

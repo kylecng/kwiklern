@@ -39,7 +39,7 @@ export default function EnhancedTableHead(props) {
       <EnhancedTableRow>
         <TableCell colSpan={columns().length} sx={{ border: 0 }}>
           <TablePagination
-            component="div"
+            component='div'
             rowsPerPageOptions={[5, 10, 25]}
             count={count}
             rowsPerPage={rowsPerPage}
@@ -65,7 +65,7 @@ export default function EnhancedTableHead(props) {
               >
                 {getHeaderCell()}
                 {orderBy === id ? (
-                  <Box component="span" sx={visuallyHidden}>
+                  <Box component='span' sx={visuallyHidden}>
                     {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                   </Box>
                 ) : null}

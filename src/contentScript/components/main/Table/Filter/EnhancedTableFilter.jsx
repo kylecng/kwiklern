@@ -26,12 +26,12 @@ export default function EnhancedTableFilter({ sx, filterStates, filterOptions, s
     <FlexCol fw sx={{ g: 2, ...sx }}>
       {/* <SearchAutocomplete /> */}
       <TextField
-        size="small"
+        size='small'
         sx={{ width: 1 }}
         value={filterStates?.search.value}
         InputProps={{
           startAdornment: (
-            <InputAdornment position="start">
+            <InputAdornment position='start'>
               <StyledIcon icon={FaSearch} />
             </InputAdornment>
           ),
@@ -52,7 +52,7 @@ export default function EnhancedTableFilter({ sx, filterStates, filterOptions, s
           'customTags',
           (value) => (row) => isEmpty(value) || !isEmpty(intersection(value, row?.customTags)),
         )}
-        label="by custom tag"
+        label='by custom tag'
       />
       <FilterAutocomplete
         {...defaultProps('autoTags')}
@@ -60,7 +60,7 @@ export default function EnhancedTableFilter({ sx, filterStates, filterOptions, s
           'autoTags',
           (value) => (row) => isEmpty(value) || !isEmpty(intersection(value, row?.autoTags)),
         )}
-        label="by auto-tag"
+        label='by auto-tag'
       />
       <FilterAutocomplete
         {...defaultProps('authors')}
@@ -96,7 +96,7 @@ export default function EnhancedTableFilter({ sx, filterStates, filterOptions, s
         onChange={onChangeBase('authors', (value) => (row) => {
           return isEmpty(value) || value.includes(row?.author?.id)
         })}
-        label="by author/channel"
+        label='by author/channel'
       />
       <FilterAutocomplete
         {...defaultProps('contentTypes')}
@@ -133,7 +133,7 @@ export default function EnhancedTableFilter({ sx, filterStates, filterOptions, s
           'contentTypes',
           (value) => (row) => isEmpty(value) || value.includes(row?.contentType),
         )}
-        label="by content type"
+        label='by content type'
       />
     </FlexCol>
   )
@@ -144,8 +144,8 @@ const AuthorOption = ({ props, author }) => {
     <FlexRow g={1} {...props}>
       {author?.imageUrl && (
         <Box
-          component="img"
-          referrerPolicy="no-referrer"
+          component='img'
+          referrerPolicy='no-referrer'
           sx={{
             objectFit: 'cover',
             width: '1.5rem',

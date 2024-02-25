@@ -106,7 +106,7 @@ export const FlexPaper = ({ children, elevation, e, ...props }) => {
 export const FlexDivider = ({ children, color, ...restProps }) => {
   return (
     <Divider
-      variant="fullWidth"
+      variant='fullWidth'
       flexItem
       {...merge({ sx: { borderBottom: 0.25, color } }, restProps)}
     >

@@ -15,8 +15,8 @@ export default function Options() {
   const navigate = useNavigate()
   return (
     <FlexCol fp>
-      <FlexCol w="80rem">
-        <FlexRow fw jc="start">
+      <FlexCol w='80rem'>
+        <FlexRow fw jc='start'>
           <Button>
             <FlexRow onClick={() => navigate('/')}>
               <StyledIcon icon={IoArrowBack} />
@@ -24,8 +24,8 @@ export default function Options() {
             </FlexRow>
           </Button>
         </FlexRow>
-        <FlexRow fw jc="start">
-          <Typography variant="h3">Options</Typography>
+        <FlexRow fw jc='start'>
+          <Typography variant='h3'>Options</Typography>
         </FlexRow>
         <OptionsForm />
       </FlexCol>
@@ -64,34 +64,34 @@ const OptionsForm = () => {
         <CircularProgress />
       ) : (
         <FormProvider {...methods}>
-          <FlexCol component="form" fp onSubmit={handleSubmit(onSubmit)}>
-            <FlexCol fp ai="start" g={1}>
-              <FlexRow fw jc="space-between">
-                <Typography variant="h4">Prompt</Typography>
-                <FlexRow fw jc="end" g={0.8}>
+          <FlexCol component='form' fp onSubmit={handleSubmit(onSubmit)}>
+            <FlexCol fp ai='start' g={1}>
+              <FlexRow fw jc='space-between'>
+                <Typography variant='h4'>Prompt</Typography>
+                <FlexRow fw jc='end' g={0.8}>
                   <Button
-                    variant="outlined"
-                    size="large"
+                    variant='outlined'
+                    size='large'
                     sx={{
                       //   bgcolor: "primary.main",
                       borderRadius: 2,
                     }}
                     onClick={() => reset(DEFAULT_OPTIONS)}
                   >
-                    <FlexRow px={0.5} g={0.5} jc="space-around">
+                    <FlexRow px={0.5} g={0.5} jc='space-around'>
                       <Typography>Use Default</Typography>
                     </FlexRow>
                   </Button>
                   <Button
-                    type="submit"
-                    variant="outlined"
-                    size="large"
+                    type='submit'
+                    variant='outlined'
+                    size='large'
                     sx={{
                       //   bgcolor: "primary.main",
                       borderRadius: 2,
                     }}
                   >
-                    <FlexRow px={0.5} g={0.5} jc="space-around">
+                    <FlexRow px={0.5} g={0.5} jc='space-around'>
                       <Typography
                         sx={
                           {
@@ -106,12 +106,12 @@ const OptionsForm = () => {
                   </Button>
                 </FlexRow>
               </FlexRow>
-              <FlexCol fp ai="start" g={1} b={1} br={2} p={3}>
+              <FlexCol fp ai='start' g={1} b={1} br={2} p={3}>
                 <FormTextField
-                  name="summaryPrompt"
-                  label="Summary Prompt"
-                  placeholder="Summary Prompt..."
-                  variant="outlined"
+                  name='summaryPrompt'
+                  label='Summary Prompt'
+                  placeholder='Summary Prompt...'
+                  variant='outlined'
                   fullWidth
                   multiline
                   minRows={4}
@@ -120,11 +120,11 @@ const OptionsForm = () => {
                 <Typography>Your output should use the following template:</Typography>
                 <Typography>### Summary</Typography>
                 <FormTextField
-                  name="summaryTemplate"
-                  label="Summary Template"
-                  placeholder="Summary Template..."
+                  name='summaryTemplate'
+                  label='Summary Template'
+                  placeholder='Summary Template...'
                   fullWidth
-                  variant="outlined"
+                  variant='outlined'
                   multiline
                   minRows={4}
                   InputLabelProps={{ shrink: true }}

@@ -10,7 +10,7 @@ import { linearGradient } from '../../common/utils/color'
 import { CONTENT_TYPE_ENUM } from '../../common/utils/constants'
 import { AiFillCalendar } from 'react-icons/ai'
 import { StyledIcon } from '../../common/Icon'
-import { Button, Link, MenuItem } from '@mui/material'
+import { Button, Link } from '@mui/material'
 import { PiListBulletsBold } from 'react-icons/pi'
 import EnhancedTableHead from './EnhancedTableHead'
 import EnhancedTableRow from './EnhancedTableRow'
@@ -223,7 +223,7 @@ export default function EnhancedTable() {
         id: 'checkbox',
         getHeaderCell: () => (
           <Checkbox
-            color="primary"
+            color='primary'
             indeterminate={selectedRows.length > 0 && selectedRows.length < filteredRows.length}
             checked={filteredRows.length > 0 && selectedRows.length === filteredRows.length}
             onChange={handleSelectAllClick}
@@ -232,7 +232,7 @@ export default function EnhancedTable() {
         ),
         getDataCell: ({ id }) => (
           <Checkbox
-            color="primary"
+            color='primary'
             checked={isSelected(id)}
             inputProps={{
               'aria-labelledby': `enhanced-table-checkbox-${id}`,
@@ -292,8 +292,8 @@ export default function EnhancedTable() {
               <FlexBox>
                 <Link
                   href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target='_blank'
+                  rel='noopener noreferrer'
                   sx={{
                     // whiteSpace: "nowrap"
                     fontSize: '1.5rem',
@@ -305,8 +305,8 @@ export default function EnhancedTable() {
               </FlexBox>
               <FlexBox>
                 <Box
-                  component="img"
-                  referrerPolicy="no-referrer"
+                  component='img'
+                  referrerPolicy='no-referrer'
                   sx={{
                     objectFit: 'cover',
                     width: '1.5rem',
@@ -321,8 +321,8 @@ export default function EnhancedTable() {
                 />
                 <Link
                   href={author?.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target='_blank'
+                  rel='noopener noreferrer'
                   sx={
                     {
                       // whiteSpace: "nowrap"
@@ -450,9 +450,9 @@ export default function EnhancedTable() {
 
   return (
     <FlexCol fp g={2.5} p={3} sx={{ overflow: 'hidden' }}>
-      <FlexRow fw jc="end" sx={{ flexShrink: 0 }}>
+      <FlexRow fw jc='end' sx={{ flexShrink: 0 }}>
         <Button onClick={() => navigate('/options')}>
-          <StyledIcon icon={RiSettings3Fill} size="3rem" />
+          <StyledIcon icon={RiSettings3Fill} size='3rem' />
         </Button>
       </FlexRow>
       {isLoading ? (
@@ -460,18 +460,18 @@ export default function EnhancedTable() {
           <CircularProgress />
         </FlexBox>
       ) : (
-        <FlexRow fw f={1} minh={0} pos="relative" g={3}>
-          <FlexCol w={0.2} jc="start" fh pos="relative">
+        <FlexRow fw f={1} minh={0} pos='relative' g={3}>
+          <FlexCol w={0.2} jc='start' fh pos='relative'>
             <EnhancedTableFilter
               filterStates={filterStates}
               filterOptions={filterOptions}
               setFilterFns={setFilterFns}
             />
           </FlexCol>
-          <FlexBox fh f={1} jc="start" pos="relative">
+          <FlexBox fh f={1} jc='start' pos='relative'>
             <FlexCol fh g={0.5}>
-              <TableContainer id="table-container">
-                <Table aria-labelledby="tableTitle" size={'small'}>
+              <TableContainer id='table-container'>
+                <Table aria-labelledby='tableTitle' size={'small'}>
                   <EnhancedTableHead
                     columns={columns}
                     numSelected={selectedRows.length}
@@ -486,7 +486,7 @@ export default function EnhancedTable() {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                   />
-                  <TableBody id="table-body">
+                  <TableBody id='table-body'>
                     {visibleRows.map((row) => {
                       const isItemSelected = isSelected(row?.id)
 
@@ -494,7 +494,7 @@ export default function EnhancedTable() {
                         <EnhancedTableRow
                           hover
                           onClick={(event) => handleClick(event, row?.id)}
-                          role="checkbox"
+                          role='checkbox'
                           aria-checked={isItemSelected}
                           tabIndex={-1}
                           key={row?.id}
@@ -515,7 +515,7 @@ export default function EnhancedTable() {
                           }}
                         >
                           {columns().map(({ id, getDataCell, cellProps, dataCellProps }) => (
-                            <TableCell key={id} align="left" {...cellProps} {...dataCellProps}>
+                            <TableCell key={id} align='left' {...cellProps} {...dataCellProps}>
                               {getDataCell(row)}
                             </TableCell>
                           ))}

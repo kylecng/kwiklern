@@ -35,7 +35,7 @@ const RequireAuth = ({ children }) => {
       </FlexBox>
     )
   } else if (!isAuth) {
-    return <Navigate to="/login" state={{ from: location }} />
+    return <Navigate to='/login' state={{ from: location }} />
   } else {
     return children
   }
@@ -57,9 +57,9 @@ const App = () => {
       >
         <Router>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path='/login' element={<Login />} />
             <Route
-              path="/"
+              path='/'
               element={
                 <RequireAuth>
                   <Table selectedTableId={0} />
@@ -67,7 +67,7 @@ const App = () => {
               }
             />
             <Route
-              path="/options"
+              path='/options'
               element={
                 <RequireAuth>
                   <Options />

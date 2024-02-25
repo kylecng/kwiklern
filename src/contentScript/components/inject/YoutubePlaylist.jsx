@@ -119,7 +119,7 @@ export default function YoutubePlaylist({ initialVideosData }) {
               g: 1,
             }}
           >
-            <FlexBox jc="end">
+            <FlexBox jc='end'>
               <Typography>kwiklern</Typography>
             </FlexBox>
             <SummarizeOptions
@@ -169,7 +169,7 @@ const SummarizeOptions = ({
 }) => {
   return (
     <FlexCol
-      component="form"
+      component='form'
       fp
       sx={{
         jc: 'center',
@@ -190,8 +190,8 @@ const SummarizeOptions = ({
       >
         {!isPlaylistSummarizing && (
           <Button
-            variant="contained"
-            size="large"
+            variant='contained'
+            size='large'
             onClick={() => startPlaylistSummarizing()}
             sx={{
               width: 1,
@@ -205,7 +205,7 @@ const SummarizeOptions = ({
 
         {isPlaylistSummarizing && (
           <Button
-            size="large"
+            size='large'
             onClick={() => setTriggerPlaylistCleanup(true)}
             sx={{ display: 'inline-flex', gap: 0.5 }}
             endIcon={<StyledIcon icon={FaStop} />}
@@ -223,7 +223,7 @@ const SummarizeOptions = ({
                 onChange={(event) => setIsUseAutoTags(event.target.checked)}
               />
             }
-            label={<Typography variant="body2">Automatically generate tags</Typography>}
+            label={<Typography variant='body2'>Automatically generate tags</Typography>}
           ></FormControlLabel>
           <FormControlLabel
             control={
@@ -232,7 +232,7 @@ const SummarizeOptions = ({
                 onChange={(event) => setIsOnlySummarizeNew(event.target.checked)}
               />
             }
-            label={<Typography variant="body2">Only summarize missing videos</Typography>}
+            label={<Typography variant='body2'>Only summarize missing videos</Typography>}
           ></FormControlLabel>
         </FlexCol>
       )}
@@ -244,7 +244,7 @@ const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
   customTags = customTags || []
   return (
     <FlexBox>
-      <Typography variant="h4">Custom Tags</Typography>
+      <Typography variant='h4'>Custom Tags</Typography>
       <Autocomplete
         freeSolo
         multiple
@@ -254,7 +254,7 @@ const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
         }}
         options={['abc', 'def']}
         renderInput={(params) => (
-          <TextField {...params} size="small" placeholder="Add Custom Tags..." />
+          <TextField {...params} size='small' placeholder='Add Custom Tags...' />
         )}
         sx={{
           width: 1,
@@ -268,7 +268,7 @@ const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
         }}
         renderTags={() => {}}
       />
-      <FlexRow ai="center" g={1} flexWrap="wrap">
+      <FlexRow ai='center' g={1} flexWrap='wrap'>
         {customTags.map((tag, index) => (
           <Chip
             key={`${tag}${index}`}
@@ -408,9 +408,9 @@ const PlaylistVideo = ({
   return (
     <Portal>
       <FlexRow
-        direction="row"
-        jc="start"
-        i="center"
+        direction='row'
+        jc='start'
+        i='center'
         g={1}
         sx={{
           p: 1.25,
@@ -419,17 +419,17 @@ const PlaylistVideo = ({
         }}
       >
         {errorText ? (
-          <Typography variant="body2">{JSON.stringify(errorText)}</Typography>
+          <Typography variant='body2'>{JSON.stringify(errorText)}</Typography>
         ) : isLoadingStoredSummaries ? (
           <Box sx={{ display: 'inline-flex', gap: 0.5 }}>
-            <CircularProgress size="1.5rem" />
-            <Typography variant="body2">Loading summary</Typography>
+            <CircularProgress size='1.5rem' />
+            <Typography variant='body2'>Loading summary</Typography>
           </Box>
         ) : (
           hasStoredSummary && (
             <Button
-              variant="outlined"
-              size="small"
+              variant='outlined'
+              size='small'
               onClick={() =>
                 sendMessageToBackground({
                   action: 'OPEN_MAIN_PAGE',
@@ -447,13 +447,13 @@ const PlaylistVideo = ({
         )}
         {isSummarizing && (
           <Box sx={{ display: 'inline-flex' }}>
-            <CircularProgress size="1.5rem" />
+            <CircularProgress size='1.5rem' />
           </Box>
         )}
         {isSummarizing && (
           <Button
             // variant="outlined"
-            size="large"
+            size='large'
             sx={{
               // display: 'inline-flex',
               // gap: 0.5,

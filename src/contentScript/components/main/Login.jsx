@@ -15,7 +15,7 @@ export default function Login() {
   }, [])
 
   if (session) {
-    return <Navigate to="/" replace={true} />
+    return <Navigate to='/' replace={true} />
   }
 
   return <div>LOGIN</div>

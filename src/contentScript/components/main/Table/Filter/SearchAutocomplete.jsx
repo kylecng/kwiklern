@@ -19,13 +19,13 @@ export default function SearchAutocomplete(props) {
     const { id, index } = option
     const [lineId, termId, summaryId, textType] = index
     return (
-      <FlexBox key={id} jc="start" px={2} pb={1} sx={{ '&:hover': { bgcolor: '#494949' } }}>
+      <FlexBox key={id} jc='start' px={2} pb={1} sx={{ '&:hover': { bgcolor: '#494949' } }}>
         <Typography>
           {searchCache?.summaries?.[summaryId]?.[textTypeTokenizedKey]?.[lineId]?.terms?.map(
             ({ text, pre, post }, termIndex) => (
               <Box
                 key={termIndex}
-                component="span"
+                component='span'
                 sx={{ color: () => (termId === termIndex ? 'orange' : 'white') }}
               >{`${pre}${text}${post}`}</Box>
             ),
@@ -65,7 +65,7 @@ export default function SearchAutocomplete(props) {
       renderInput={(params) => (
         <TextField
           {...params}
-          size="small"
+          size='small'
           label={`Search`}
           placeholder={`search`}
           // InputProps={{
