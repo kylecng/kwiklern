@@ -240,7 +240,8 @@ const SummarizeOptions = ({
   )
 }
 
-const CustomTags = ({ customTags = [], setCustomTags, isPlaylistSummarizing }) => {
+const CustomTags = ({ customTags, setCustomTags, isPlaylistSummarizing }) => {
+  customTags = customTags || []
   return (
     <FlexBox>
       <Typography variant="h4">Custom Tags</Typography>

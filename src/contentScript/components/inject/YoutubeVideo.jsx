@@ -338,7 +338,8 @@ export default function YoutubeVideo() {
         : text
   }
 
-  const getUpdatedTags = (prevTags = [], tags = [], dateComp = 0) => {
+  const getUpdatedTags = (prevTags, tags, dateComp = 0) => {
+    ;(prevTags = prevTags || []), (tags = tags || [])
     if (dateComp === -1) return prevTags
     else if (dateComp === 1) return tags
     else return [...new Set([...prevTags, ...tags])]

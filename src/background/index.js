@@ -117,7 +117,8 @@ async function generateAnswers({ emitter, controller, prompt }) {
   }
 }
 
-const handleDatabaseCall = (func, params = [], sendResponse) => {
+const handleDatabaseCall = (func, params, sendResponse) => {
+  params = params || []
   if (Database[func].constructor.name === 'AsyncFunction') {
     Database[func](...params)
       .then(({ error, ...data }) => {

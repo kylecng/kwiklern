@@ -23,7 +23,7 @@ import { RiSettings3Fill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 import { useDidMount } from '../../common/utils/hooks'
 import { processTokenizedData } from './Filter/SearchHandler'
-import { entries, fromPairs, values, zip } from 'lodash'
+import { entries, fromPairs, isEmpty, values, zip } from 'lodash'
 import Markdown from 'react-markdown'
 import Mark from 'mark.js'
 
@@ -122,32 +122,40 @@ export default function EnhancedTable() {
           const newCustomTagsOptions = new Set()
           const newAutoTagsOptions = new Set()
           const newAuthorsOptions = {}
-          const newRows = summaries.map((row = {}) => {
-            const {
+          const newRows = summaries.map((row) => {
+            let {
               id,
-              contents: content = {},
+              contents: content,
               title: summaryTitle,
               text: summaryText,
-              customTags = [],
-              autoTags = [],
+              customTags,
+              autoTags,
               dateCreated,
               dateModified,
-            } = row
+            } = row || {}
+            customTags = customTags || []
+            autoTags = autoTags || []
             const {
               // id: contentId,
               url,
               domain,
               type: contentType,
               title: contentTitle,
-              authors: author = {},
+              authors: author,
               authorName,
               text: contentText,
-            } = content
-            const { id: authorId, url: authorUrl, domain: authorDomain, name, imageUrl } = author
+            } = content || {}
+            const {
+              id: authorId,
+              url: authorUrl,
+              domain: authorDomain,
+              name,
+              imageUrl,
+            } = author || {}
 
             customTags.forEach((customTag) => newCustomTagsOptions.add(customTag))
             autoTags.forEach((autoTag) => newAutoTagsOptions.add(autoTag))
-            newAuthorsOptions[authorId] = author
+            if (!isEmpty(author)) newAuthorsOptions[authorId] = author
 
             return {
               id,
@@ -240,9 +248,9 @@ export default function EnhancedTable() {
         headerCellProps: { sx: { width: 0.3 } },
         getHeaderCell: () => getDefaultHeaderCell('Source'),
         getDataCell: ({ contentType, title, url, author, customTags, autoTags }) => {
-          const renderTags = (tags = [], selectedTags, setSelectedTags) => (
+          const renderTags = (tags, selectedTags, setSelectedTags) => (
             <FlexRow sx={{ rowGap: 0.5, columnGap: 1, flexWrap: 'wrap' }}>
-              {[...tags].map((tag, index) => (
+              {[...(tags || [])].map((tag, index) => (
                 <FlexRow
                   key={`${tag}${index}`}
                   // label={tag}

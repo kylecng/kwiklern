@@ -1,7 +1,6 @@
 import { createTheme } from '@mui/material/styles'
 import { merge, fromPairs, clone } from 'lodash'
 import 'typeface-inter'
-import 'typeface-oswald'
 
 // define color palette
 let theme = createTheme({
