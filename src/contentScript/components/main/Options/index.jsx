@@ -42,8 +42,9 @@ const OptionsForm = () => {
     ;(async () => {
       const { options: fetchedOptions } =
         (await sendMessageToBackground({
-          action: 'getOptions',
+          action: 'getFields',
           type: 'DATABASE',
+          data: ['userDatas', null, 'options'],
         })) || {}
 
       reset(merge(clone(DEFAULT_OPTIONS), clone(fetchedOptions)))
@@ -53,9 +54,9 @@ const OptionsForm = () => {
 
   const onSubmit = (options) => {
     sendMessageToBackground({
-      action: 'updateOptions',
+      action: 'updateFields',
       type: 'DATABASE',
-      data: [options],
+      data: ['userDatas', null, { options }],
     })
   }
   return (

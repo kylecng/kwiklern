@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { supabaseUrl, supabaseKey } from '../secrets/secrets.supabase'
 import { dataCache } from './dataCache'
-import { keys } from 'lodash'
+import { assign, isArray, keys } from 'lodash'
 
 const isEmpty = (data) => {
   if (!data) return true
@@ -519,42 +519,44 @@ class Database {
     }
   }
 
-  async getOptions() {
-    let data, error, options
+  async getFields(table, id, fields) {
+    const isUserDatas = table === 'userDatas'
+    fields = isArray(fields) ? fields.join(',') : fields
+    if (isUserDatas) id = this.user?.id
+    let data, error, values
     try {
-      ;({ data, error } = await supabase
-        .from('userDatas')
-        .select('options')
-        .eq('id', this.user?.id))
+      ;({ data, error } = await supabase.from(table).select(fields).eq('id', id))
       if (error) throw error
 
       if (!isEmpty(data)) {
-        options = data[0].options
-        dataCache.userData.options = options
+        values = data[0] || {}
+        isUserDatas ? assign(dataCache.userData, values) : assign(dataCache[table][id], values)
       }
-      return { options }
+      return values
     } catch (err) {
-      return { error: err, options }
+      return { error: err, ...values }
     }
   }
 
-  async updateOptions(newOptions) {
-    let data, error, options
+  async updateFields(table, id, newData) {
+    const isUserDatas = table === 'userDatas'
+    if (isUserDatas) id = this.user?.id
+    let data, error, values
     try {
       ;({ data, error } = await supabase
-        .from('userDatas')
-        .update({ options: newOptions })
-        .eq('id', this.user?.id)
-        .select('options'))
+        .from(table)
+        .update(newData)
+        .eq('id', id)
+        .select(keys(newData).join(',')))
       if (error) throw error
 
       if (!isEmpty(data)) {
-        options = data[0].options
-        dataCache.userData.options = options
+        values = data[0] || {}
+        isUserDatas ? assign(dataCache.userData, values) : assign(dataCache[table][id], values)
       }
-      return { options }
+      return values
     } catch (err) {
-      return { error: err, options }
+      return { error: err, ...values }
     }
   }
 }

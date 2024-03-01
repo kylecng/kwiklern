@@ -32,7 +32,7 @@ export async function getPrompt(contentData, isUseAutoTags = true) {
   const { text, title } = contentData
   if (isEmpty(text)) return
 
-  const { options, error } = await Database.getOptions()
+  const { options, error } = await Database.getFields('userDatas', null, 'options')
   if (error) return
   const summaryPrompt = options?.summaryPrompt || DEFAULT_OPTIONS.summaryPrompt
   const summaryTemplate = options?.summaryTemplate || DEFAULT_OPTIONS.summaryTemplate
