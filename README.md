@@ -1,7 +1,7 @@
 # kwiklern
 > summarize YouTube videos & playlists, and organize your summaries by topic to learn anything faster
 
-##### Status: *Beta version now available on [Chrome Web Store](https://chromewebstore.google.com/detail/kwiklern/jchicdkhodennoljhcgnngjbdkebpajd) (compatible with Chrome, Edge, Opera, Brave, and any othe Chromium-based browser)*  
+##### Status: *Beta version now available on [Chrome Web Store](https://chromewebstore.google.com/detail/kwiklern/jchicdkhodennoljhcgnngjbdkebpajd) (compatible with Chrome, Edge, Opera, Brave, and any other Chromium-based browser)*  
 ***
 
 ### summarize videos
